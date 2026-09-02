@@ -1,0 +1,14 @@
+[
+  {
+    "document_id": 1,
+    "file_name": "sample_document.pdf",
+    "page": 1,
+    "text": "Dumm y PDF file"
+  },
+  {
+    "document_id": 2,
+    "file_name": "sample_document.pdf",
+    "page": 1,
+    "text": "Dumm y PDF file"
+  }
+]

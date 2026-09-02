@@ -1,0 +1,19 @@
+{
+  "text": "Based on the indexed documents, the following excerpts are most relevant to your query:\n\nFrom [sample_document.pdf, p.1]: \"Dumm y PDF file...\"\n\nFrom [sample_document.pdf, p.1]: \"Dumm y PDF file...\"\n\n⚠️ Note: Configure a Gemini API key (GEMINI_API_KEY env var) for full AI-synthesized responses.",
+  "citations": [
+    {
+      "label": "[sample_document.pdf, p.1]",
+      "docNum": 2,
+      "page": 1,
+      "docName": "sample_document.pdf"
+    },
+    {
+      "label": "[sample_document.pdf, p.1]",
+      "docNum": 1,
+      "page": 1,
+      "docName": "sample_document.pdf"
+    }
+  ],
+  "confidence": "Partially Supported",
+  "chunks_used": 2
+}
