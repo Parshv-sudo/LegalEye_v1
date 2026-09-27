@@ -1,5 +1,12 @@
 # LegalEye - Litigation Intelligence Engine
 
+<div align="center">
+  <img src="app_badge.jpg" alt="LegalEye App Badge" width="600">
+  <br>
+  <p><b>© 2026 Parshv / LegalEye. All Rights Reserved. PROPRIETARY AND CONFIDENTIAL. Do not copy, distribute, or modify without explicit permission.</b></p>
+</div>
+
+
 LegalEye is a modern legal case management and document intelligence platform. It provides automated pleading extraction, evidentiary timeline reconstruction, cross-document contradiction mapping, and a Retrieval-Augmented Generation (RAG) powered AI chat for legal matters.
 
 ## 🌟 Features
