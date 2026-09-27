@@ -40,6 +40,40 @@ export function DocumentsList({ onBack, onOpenCitation, matter, onOpenMobileSide
   return (
     <div className="flex-1 flex flex-col min-w-0 bg-[#F0F2F5] overflow-y-auto">
 
+      {/* Top Header / Breadcrumb */}
+      <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
+              {onOpenMobileSidebar && (
+                <button
+                  onClick={onOpenMobileSidebar}
+                  className="md:hidden text-gray-600 hover:text-gray-900 p-1 -ml-1 rounded transition-colors"
+                  aria-label="Open navigation menu"
+                >
+                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">menu</span>
+                </button>
+              )}
+              <button
+                onClick={onBack}
+                className="hover:text-[#0A192F] flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                Matter Dashboard
+              </button>
+              <span>/</span>
+              <span className="text-[#0A192F] font-mono font-bold">{matterCode}</span>
+            </div>
+
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-xl md:text-2xl font-heading font-bold text-[#0A192F]">
+                {matter?.title || 'Documents Library'}
+              </h1>
+            </div>
+          </div>
+        </div>
+      </header>
+
       {/* List */}
       <main className="p-6 max-w-[1600px] w-full mx-auto space-y-4 flex-1">
         
