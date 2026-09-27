@@ -23,12 +23,20 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-o9@l)+e)+0+l*j$$by=)i9#*#p2st54l9pnlvwvky=42fv9&9%'
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-o9@l)+e)+0+l*j$$by=)i9#*#p2st54l9pnlvwvky=42fv9&9%'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+# On Render, the service gets a .onrender.com hostname
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 
 # Application definition
@@ -47,6 +55,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -122,7 +131,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STORAGES = {
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
@@ -132,7 +146,17 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
-CORS_ALLOW_ALL_ORIGINS = True
+
+# CORS — allow Vercel frontend + localhost dev
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        'CORS_ALLOWED_ORIGINS',
+        'http://localhost:3000,http://127.0.0.1:3000'
+    ).split(',')
+    if origin.strip()
+]
+CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'False').lower() in ('true', '1', 'yes')
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -154,3 +178,6 @@ else:
     # Fallback to local storage for dev if Azure is not configured
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

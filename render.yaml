@@ -1,0 +1,21 @@
+# render.yaml — Infrastructure-as-Code for Render deployment
+# https://docs.render.com/infrastructure-as-code
+services:
+  - type: web
+    name: legaleye-backend
+    runtime: python
+    region: oregon
+    rootDir: backend
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: CORS_ALLOW_ALL_ORIGINS
+        value: "True"
+      - key: PYTHON_VERSION
+        value: "3.12.4"
+      - key: GEMINI_API_KEY
+        sync: false  # Set manually in Render dashboard
