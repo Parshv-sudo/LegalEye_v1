@@ -12,14 +12,18 @@ export function InviteMemberModal({ isOpen, onClose, matter, onInvite }: InviteM
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<Role>('GUEST');
   const [scope, setScope] = useState('matter'); // 'matter' or 'document'
+  const [selectedDocumentId, setSelectedDocumentId] = useState('');
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
-    onInvite(email.trim(), role, scope);
+    const finalScope = scope === 'document' && selectedDocumentId ? `document:${selectedDocumentId}` : scope;
+    onInvite(email.trim(), role, finalScope);
     setEmail('');
+    setScope('matter');
+    setSelectedDocumentId('');
     onClose();
   };
 
@@ -95,6 +99,28 @@ export function InviteMemberModal({ isOpen, onClose, matter, onInvite }: InviteM
                     />
                     Single Document Only
                   </label>
+                  
+                  {scope === 'document' && (
+                    <div className="mt-2 ml-6">
+                      <select
+                        value={selectedDocumentId}
+                        onChange={(e) => setSelectedDocumentId(e.target.value)}
+                        required={scope === 'document'}
+                        className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#115fd4] focus:ring-1 focus:ring-[#115fd4] outline-none bg-white"
+                      >
+                        <option value="" disabled>Select a document...</option>
+                        {matter.documents && matter.documents.length > 0 ? (
+                          matter.documents.map((doc: any) => (
+                            <option key={doc.id} value={doc.id}>
+                              {doc.file_name}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="" disabled>No documents uploaded yet</option>
+                        )}
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

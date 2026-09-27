@@ -8,7 +8,8 @@ interface AskMatterDrawerProps {
   onOpenCitation: (key: string) => void;
   isDockedMode?: boolean;
   matterTitle?: string;
-  matterId?: number;
+  matterId?: number | string;
+  matterIndexedCount?: number;
 }
 
 export function AskMatterDrawer({
@@ -18,6 +19,7 @@ export function AskMatterDrawer({
   isDockedMode = false,
   matterTitle,
   matterId,
+  matterIndexedCount = 0,
 }: AskMatterDrawerProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -48,7 +50,7 @@ export function AskMatterDrawer({
         throw new Error('No matter selected. Open a matter to use the AI assistant.');
       }
 
-      const response = await ragApi.chat(matterId, textToSend);
+      const response = await ragApi.chat(Number(matterId), textToSend);
       const data = response.data;
 
       const aiMsg: ChatMessage = {
@@ -133,7 +135,7 @@ export function AskMatterDrawer({
       {/* Grounding Banner */}
       <div className="bg-[#F0F4F8] border-b border-gray-200 py-1.5 px-4 text-[11px] font-semibold text-[#115fd4] flex items-center justify-center gap-1.5 shrink-0 uppercase tracking-wider">
         <span className="material-symbols-outlined text-[14px]" aria-hidden="true">lock</span>
-        <span>Responses limited strictly to 42 indexed documents</span>
+        <span>Responses limited strictly to {matterIndexedCount} indexed documents</span>
       </div>
 
       {/* Chat Transcript Area */}

@@ -16,6 +16,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace>(initialWorkspaces[0]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,6 +141,13 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             </div>
           )}
 
+          {infoMessage && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded text-blue-700 text-xs font-semibold flex items-center gap-2">
+              <span className="material-symbols-outlined text-[16px]">info</span>
+              {infoMessage}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-[#1A1A1A] mb-1.5" htmlFor="email">
@@ -166,7 +174,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                 <label className="text-xs font-semibold text-[#1A1A1A]" htmlFor="password">
                   Password / Passkey
                 </label>
-                <a href="#forgot" onClick={(e) => e.preventDefault()} className="text-[11px] text-[#115fd4] hover:underline">
+                <a href="#forgot" onClick={(e) => { e.preventDefault(); setInfoMessage('Password recovery is not yet configured. Contact your system administrator.'); setTimeout(() => setInfoMessage(null), 4000); }} className="text-[11px] text-[#115fd4] hover:underline cursor-pointer">
                   Forgot password?
                 </a>
               </div>
@@ -186,10 +194,6 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             </div>
 
             <div className="flex items-center justify-between text-xs">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" defaultChecked className="rounded text-[#2D5A27] focus:ring-[#2D5A27]" />
-                <span className="text-gray-600">Remember credentials on this machine</span>
-              </label>
             </div>
 
             <button
@@ -214,16 +218,16 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => onLogin(selectedWorkspace)}
-              className="py-2.5 px-4 border border-gray-300 rounded text-xs font-semibold hover:bg-gray-50 flex items-center justify-center gap-2 text-gray-700 transition-colors"
+              onClick={() => { setInfoMessage('Google SSO is not configured. Using demo login.'); setTimeout(() => setInfoMessage(null), 3000); }}
+              className="py-2.5 px-4 border border-gray-300 rounded text-xs font-semibold hover:bg-gray-50 flex items-center justify-center gap-2 text-gray-700 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px] text-red-500">cloud</span>
               Google Workspace
             </button>
             <button
               type="button"
-              onClick={() => onLogin(selectedWorkspace)}
-              className="py-2.5 px-4 border border-gray-300 rounded text-xs font-semibold hover:bg-gray-50 flex items-center justify-center gap-2 text-gray-700 transition-colors"
+              onClick={() => { setInfoMessage('Microsoft Entra SSO is not configured. Using demo login.'); setTimeout(() => setInfoMessage(null), 3000); }}
+              className="py-2.5 px-4 border border-gray-300 rounded text-xs font-semibold hover:bg-gray-50 flex items-center justify-center gap-2 text-gray-700 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px] text-blue-600">domain</span>
               Microsoft Entra

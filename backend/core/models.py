@@ -32,6 +32,9 @@ class Matter(models.Model):
     status = models.CharField(max_length=50)
     internal_notes = models.TextField(blank=True)
     missing_info_note = models.TextField(blank=True)
+    is_pinned = models.BooleanField(default=False)
+    is_archived = models.BooleanField(default=False)
+    is_collaborative = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

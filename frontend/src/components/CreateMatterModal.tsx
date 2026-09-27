@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { OpposingCounsel, Matter } from '../types';
-import { indianCourtsList } from '../data/mockData';
+import { courtsStructure } from '../data/courtsStructure';
 
 interface CreateMatterModalProps {
   isOpen: boolean;
@@ -10,14 +10,18 @@ interface CreateMatterModalProps {
 
 export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMatterModalProps) {
   const [currentStep, setCurrentStep] = useState(1); // Start on Step 1: Client Info
+  const createFileInputRef = useRef<HTMLInputElement>(null);
 
   // Form State with clean defaults
   const [clientName, setClientName] = useState('');
   const [caseTitle, setCaseTitle] = useState('');
   const [practiceArea, setPracticeArea] = useState('Commercial Litigation & Arbitration');
 
-  const [jurisdiction, setJurisdiction] = useState('');
-  const [jurisdictionSearchOpen, setJurisdictionSearchOpen] = useState(false);
+  const [courtLevel, setCourtLevel] = useState('High Court');
+  const [courtState, setCourtState] = useState('');
+  const [courtDistrict, setCourtDistrict] = useState('');
+  const [courtName, setCourtName] = useState('');
+  
   const [counsels, setCounsels] = useState<OpposingCounsel[]>([
     { id: '1', name: '', firm: '', email: '' }
   ]);
@@ -26,19 +30,6 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
     'Initial_Pleadings_Notice.pdf',
     'Vakalatnama_Executed.pdf'
   ]);
-
-  const jurisdictionRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (jurisdictionRef.current && !jurisdictionRef.current.contains(event.target as Node)) {
-        setJurisdictionSearchOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   if (!isOpen) return null;
 
@@ -63,11 +54,17 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     } else {
+      let finalJurisdiction = courtName;
+      if (!finalJurisdiction) {
+        if (courtLevel === 'Supreme Court') finalJurisdiction = courtsStructure['Supreme Court'][0];
+        else finalJurisdiction = courtLevel;
+      }
+      
       // Final Submit
       const newMatter: Partial<Matter> = {
         title: caseTitle || 'Commercial Dispute Matter',
         client: clientName || 'Client Corp',
-        jurisdiction: jurisdiction || 'Delhi High Court',
+        jurisdiction: finalJurisdiction,
         status: 'Active',
         nextHearing: 'Nov 18, 2023',
         opposingCounsels: counsels.filter((c) => c.name.trim()),
@@ -85,10 +82,6 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
       onClose();
     }
   };
-
-  const filteredCourts = indianCourtsList.filter((court) =>
-    court.toLowerCase().includes(jurisdiction.toLowerCase())
-  );
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0A192F]/60 backdrop-blur-xs flex items-center justify-center p-0 sm:p-4 animate-fadeIn">
@@ -301,6 +294,9 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded bg-white focus:ring-1 focus:ring-[#2D5A27] focus:border-[#2D5A27]"
                     >
                       <option>Commercial Litigation &amp; Arbitration</option>
+                      <option>Civil Suit (General)</option>
+                      <option>Property &amp; Real Estate Disputes</option>
+                      <option>Family Law &amp; Matrimonial Disputes</option>
                       <option>Antitrust &amp; Competition Law</option>
                       <option>Corporate Governance &amp; Insolvency</option>
                       <option>Intellectual Property Enforcement</option>
@@ -324,72 +320,117 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
 
                 <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
                   {/* Jurisdiction Combobox */}
-                  <div ref={jurisdictionRef} className="space-y-2 relative">
+                  <div className="space-y-2 relative">
                     <label className="block text-sm font-semibold text-[#1A1A1A]" htmlFor="jurisdiction">
                       Jurisdiction <span className="text-[#991B1B]">*</span>
                     </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="material-symbols-outlined text-gray-400 text-[20px]" aria-hidden="true">
-                          account_balance
-                        </span>
+                    <div className="space-y-4">
+                      {/* Court Level */}
+                      <div>
+                        <select
+                          value={courtLevel}
+                          onChange={(e) => {
+                            setCourtLevel(e.target.value);
+                            setCourtState('');
+                            setCourtDistrict('');
+                            setCourtName('');
+                          }}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded bg-white focus:ring-1 focus:ring-[#2D5A27] focus:border-[#2D5A27]"
+                        >
+                          <option value="Supreme Court">Supreme Court</option>
+                          <option value="High Court">High Court</option>
+                          <option value="District Court">District Court</option>
+                          <option value="Tribunal">Tribunal</option>
+                        </select>
                       </div>
-                      <input
-                        id="jurisdiction"
-                        name="jurisdiction"
-                        value={jurisdiction}
-                        onChange={(e) => {
-                          setJurisdiction(e.target.value);
-                          setJurisdictionSearchOpen(true);
-                        }}
-                        onFocus={() => setJurisdictionSearchOpen(true)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Escape') setJurisdictionSearchOpen(false);
-                        }}
-                        placeholder="Search Indian courts (e.g., Delhi High Court)"
-                        type="text"
-                        className="block w-full pl-10 pr-10 py-2.5 sm:py-2 text-sm border border-gray-300 rounded bg-white text-[#1A1A1A] placeholder-gray-400 focus:ring-1 focus:ring-[#2D5A27] focus:border-[#2D5A27] transition-colors"
-                      />
-                      {jurisdiction && (
-                        <div className="absolute inset-y-0 right-0 pr-2 flex items-center">
-                          <button
-                            type="button"
-                            onClick={() => setJurisdiction('')}
-                            aria-label="Clear"
-                            className="text-gray-400 hover:text-gray-700 p-1 cursor-pointer"
+
+                      {/* State (if High Court or District Court) */}
+                      {(courtLevel === 'High Court' || courtLevel === 'District Court') && (
+                        <div>
+                          <label className="block text-xs font-semibold text-[#1A1A1A] mb-1">State</label>
+                          <select
+                            value={courtState}
+                            onChange={(e) => {
+                              setCourtState(e.target.value);
+                              setCourtDistrict('');
+                              setCourtName('');
+                            }}
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded bg-white focus:ring-1 focus:ring-[#2D5A27] focus:border-[#2D5A27]"
                           >
-                            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
-                          </button>
+                            <option value="">Select State</option>
+                            {Object.keys(courtsStructure[courtLevel]).sort().map(state => (
+                              <option key={state} value={state}>{state}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {/* District (if District Court) */}
+                      {courtLevel === 'District Court' && courtState && (
+                        <div>
+                          <label className="block text-xs font-semibold text-[#1A1A1A] mb-1">District</label>
+                          <select
+                            value={courtDistrict}
+                            onChange={(e) => {
+                              setCourtDistrict(e.target.value);
+                              setCourtName('');
+                            }}
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded bg-white focus:ring-1 focus:ring-[#2D5A27] focus:border-[#2D5A27]"
+                          >
+                            <option value="">Select District</option>
+                            {Object.keys((courtsStructure['District Court'] as any)[courtState] || {}).sort().map(dist => (
+                              <option key={dist} value={dist}>{dist}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {/* Final Court Name Options */}
+                      {((courtLevel === 'High Court' && courtState) || 
+                        (courtLevel === 'District Court' && courtDistrict) || 
+                        courtLevel === 'Tribunal') && (
+                        <div>
+                          <label className="block text-xs font-semibold text-[#1A1A1A] mb-1">Specific Court</label>
+                          {courtLevel === 'District Court' ? (
+                            <select
+                              value={courtName}
+                              onChange={(e) => setCourtName(e.target.value)}
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded bg-white focus:ring-1 focus:ring-[#2D5A27] focus:border-[#2D5A27]"
+                            >
+                              <option value="">Select Court</option>
+                              {((courtsStructure['District Court'] as any)[courtState]?.[courtDistrict] || []).map((c: string) => (
+                                <option key={c} value={c}>{c}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <select
+                              value={courtName}
+                              onChange={(e) => setCourtName(e.target.value)}
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded bg-white focus:ring-1 focus:ring-[#2D5A27] focus:border-[#2D5A27]"
+                            >
+                              <option value="">Select Court</option>
+                              {(courtLevel === 'High Court' 
+                                ? (courtsStructure['High Court'] as any)[courtState] || [] 
+                                : courtsStructure['Tribunal']
+                              ).map((c: string) => (
+                                <option key={c} value={c}>{c}</option>
+                              ))}
+                            </select>
+                          )}
+                          
+                          {/* Fallback override for exact match if needed */}
+                          <div className="mt-2">
+                            <input
+                              type="text"
+                              value={courtName}
+                              onChange={(e) => setCourtName(e.target.value)}
+                              placeholder="Or type exact court name manually..."
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded bg-gray-50 focus:bg-white focus:ring-1 focus:ring-[#2D5A27] focus:border-[#2D5A27]"
+                            />
+                          </div>
                         </div>
                       )}
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Type to search across High Courts, Supreme Court, or Tribunals.
-                    </p>
-
-                    {/* Autocomplete Dropdown */}
-                    {jurisdictionSearchOpen && (
-                      <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-48 overflow-y-auto">
-                        {filteredCourts.length > 0 ? (
-                          filteredCourts.map((court, idx) => (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => {
-                                setJurisdiction(court);
-                                setJurisdictionSearchOpen(false);
-                              }}
-                              className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 flex items-center gap-2 border-b border-gray-50 last:border-0 cursor-pointer"
-                            >
-                              <span className="material-symbols-outlined text-[16px] text-gray-400" aria-hidden="true">visibility</span>
-                              {court}
-                            </button>
-                          ))
-                        ) : (
-                          <div className="p-3 text-xs text-gray-400">No courts matched your search.</div>
-                        )}
-                      </div>
-                    )}
                   </div>
 
                   {/* Opposing Counsel Section */}
@@ -486,13 +527,27 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
                   </p>
                 </div>
 
-                <div className="border-2 border-dashed border-gray-300 rounded p-6 text-center hover:border-[#0A192F] transition-colors bg-gray-50 cursor-pointer">
+                <div 
+                  className="border-2 border-dashed border-gray-300 rounded p-6 text-center hover:border-[#0A192F] transition-colors bg-gray-50 cursor-pointer"
+                  onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-[#0A192F]', 'bg-blue-50'); }}
+                  onDragLeave={(e) => { e.preventDefault(); e.currentTarget.classList.remove('border-[#0A192F]', 'bg-blue-50'); }}
+                  onDrop={(e) => { e.preventDefault(); e.currentTarget.classList.remove('border-[#0A192F]', 'bg-blue-50'); const droppedFiles = Array.from(e.dataTransfer.files as FileList).map((f: File) => f.name); setFiles([...files, ...droppedFiles]); }}
+                  onClick={() => createFileInputRef.current?.click()}
+                >
                   <span className="material-symbols-outlined text-3xl text-gray-400 mb-2">cloud_upload</span>
                   <p className="text-sm font-semibold text-[#1A1A1A]">Drag &amp; drop PDF files</p>
                   <p className="text-xs text-gray-500 mt-1">PDF, DOCX, TXT up to 50MB</p>
+                  <input
+                    ref={createFileInputRef}
+                    type="file"
+                    multiple
+                    accept=".pdf,.docx,.txt"
+                    className="hidden"
+                    onChange={(e) => { if (e.target.files) { const newFiles = Array.from(e.target.files as FileList).map((f: File) => f.name); setFiles([...files, ...newFiles]); e.target.value = ''; } }}
+                  />
                   <button
                     type="button"
-                    onClick={() => setFiles([...files, `Document_Exhibit_${files.length + 1}.pdf`])}
+                    onClick={(e) => { e.stopPropagation(); createFileInputRef.current?.click(); }}
                     className="mt-3 px-3 py-1.5 bg-white border border-gray-300 rounded text-xs font-semibold hover:bg-gray-100"
                   >
                     + Browse Files
@@ -507,7 +562,12 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
                         <span className="material-symbols-outlined text-red-600 text-base">picture_as_pdf</span>
                         <span className="font-medium text-gray-800">{file}</span>
                       </div>
-                      <span className="text-[10px] text-[#2D5A27] font-semibold bg-green-50 px-2 py-0.5 rounded">Ready</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-[#2D5A27] font-semibold bg-green-50 px-2 py-0.5 rounded">Ready</span>
+                        <button type="button" onClick={() => setFiles(files.filter((_, i) => i !== idx))} className="text-gray-400 hover:text-red-500 transition-colors" title="Remove file">
+                          <span className="material-symbols-outlined text-[16px]">close</span>
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -537,7 +597,7 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
                   </div>
                   <div className="flex justify-between border-b border-gray-200 pb-2">
                     <span className="text-gray-500 font-medium">Jurisdiction</span>
-                    <span className="font-semibold text-gray-900">{jurisdiction || 'Delhi High Court'}</span>
+                    <span className="font-semibold text-gray-900">{courtName || courtState || courtLevel || 'Not specified'}</span>
                   </div>
                   <div className="flex justify-between border-b border-gray-200 pb-2">
                     <span className="text-gray-500 font-medium">Opposing Counsel</span>

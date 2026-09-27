@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Workspace } from '../types';
-import { getApiKey, setApiKey, clearApiKey, isApiKeyConfigured, validateApiKey } from '../services/geminiService';
+import { isApiKeyConfigured } from '../services/geminiService';
 
 interface SettingsViewProps {
   activeWorkspace: Workspace;
@@ -27,10 +27,6 @@ export function SettingsView({ activeWorkspace, onBack, onOpenMobileSidebar }: S
     setToastMessage('Workspace configuration and AI pipeline settings saved successfully.');
     setTimeout(() => setToastMessage(null), 3000);
   };
-
-  const maskedKey = apiKeyInput
-    ? `${apiKeyInput.slice(0, 6)}${'•'.repeat(Math.max(0, apiKeyInput.length - 10))}${apiKeyInput.slice(-4)}`
-    : '';
 
   return (
     <div className="flex-1 flex flex-col min-w-0 bg-[#F0F2F5] overflow-y-auto">
@@ -153,6 +149,7 @@ export function SettingsView({ activeWorkspace, onBack, onOpenMobileSidebar }: S
                 <option>Google Vision Ultra &amp; Cursive Handwriting Parser</option>
                 <option>Standard OCR (Fast Tesseract Engine)</option>
               </select>
+              <p className="text-[11px] text-gray-400 mt-1">Configured server-side. Changes take effect on next ingestion batch.</p>
             </div>
 
             <div>
@@ -165,6 +162,7 @@ export function SettingsView({ activeWorkspace, onBack, onOpenMobileSidebar }: S
                 <option>High Precision (Strict Evidentiary Proof)</option>
                 <option>Balanced Recall (Flags Minor Date &amp; Number Nuances)</option>
               </select>
+              <p className="text-[11px] text-gray-400 mt-1">Controls sensitivity of the cross-document contradiction engine.</p>
             </div>
 
             <label className="flex items-center gap-2 text-gray-700 cursor-pointer pt-2">
@@ -179,12 +177,13 @@ export function SettingsView({ activeWorkspace, onBack, onOpenMobileSidebar }: S
           </div>
 
           <div className="pt-4 border-t border-gray-100 flex justify-end">
-            <button
+           <button
               onClick={handleSave}
               className="px-4 py-2 bg-[#2D5A27] text-white font-bold rounded hover:bg-[#2D5A27]/90 transition-colors cursor-pointer shadow-xs"
             >
               Save Configuration
             </button>
+            <p className="text-[11px] text-gray-400 mt-2 text-right">Settings are saved to your browser session only.</p>
           </div>
         </div>
       </main>

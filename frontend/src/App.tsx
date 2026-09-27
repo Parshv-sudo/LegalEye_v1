@@ -6,8 +6,6 @@ import { LoginScreen } from './components/LoginScreen';
 import { Sidebar } from './components/Sidebar';
 import { MattersList } from './components/MattersList';
 import { MatterDashboard } from './components/MatterDashboard';
-import { DocumentPipeline } from './components/DocumentPipeline';
-import { ContradictionsGaps } from './components/ContradictionsGaps';
 import { DocumentsList } from './components/DocumentsList';
 import { SettingsView } from './components/SettingsView';
 import { CreateMatterModal } from './components/CreateMatterModal';
@@ -15,15 +13,26 @@ import { CitationDetailModal } from './components/CitationDetailModal';
 import { DraftGeneratorModal } from './components/DraftGeneratorModal';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider, useData } from './context/DataContext';
+import { LibraryView } from './components/LibraryView';
+import { UserProfileView } from './components/UserProfileView';
 
 function AppContent() {
   const { currentUser, logout } = useAuth();
   const [currentRoute, setCurrentRoute] = useState<ViewRoute>('matters');
   const [activeWorkspace, setActiveWorkspace] = useState<Workspace>(initialWorkspaces[0]);
   const [selectedMatter, setSelectedMatter] = useState<Matter | null>(null);
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  const handleToggleSidebar = () => {
+    if (window.innerWidth < 768) {
+      setIsMobileSidebarOpen(true);
+    } else {
+      setIsDesktopSidebarOpen(!isDesktopSidebarOpen);
+    }
+  };
   
-  const { matters, isLoading, error, updateMatter, createMatter, refreshMatters } = useData();
+  const { matters, isLoading, error, updateMatter, createMatter, deleteMatter, refreshMatters } = useData();
 
   useEffect(() => {
     if (currentUser) {
@@ -108,71 +117,88 @@ function AppContent() {
 
   return (
     <div className="flex h-screen w-full bg-[#F0F2F5] overflow-hidden text-[#1A1A1A] font-sans">
-      {/* Left Sidebar */}
+      {/* Left Sidebar (Slidable Desktop + Mobile Drawer) */}
       <Sidebar
         currentRoute={currentRoute}
         onNavigate={(route) => setCurrentRoute(route)}
         activeWorkspace={activeWorkspace}
         onSwitchWorkspace={logout}
+        isMobileOpen={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        isDesktopOpen={isDesktopSidebarOpen}
+        onToggleDesktop={() => setIsDesktopSidebarOpen(!isDesktopSidebarOpen)}
+        onOpenCreateModal={() => setIsCreateModalOpen(true)}
+        matters={matters}
       />
 
       {/* Main Workspace View Routing */}
-      {currentRoute === 'matters' && (
-        <MattersList
-          matters={matters}
-          isLoading={isLoading}
-          onSelectMatter={(matter) => {
-            setSelectedMatter(matter);
-            setCurrentRoute('matter-detail');
-          }}
-          onOpenCreateModal={() => setIsCreateModalOpen(true)}
-          onOpenPipeline={() => setCurrentRoute('pipeline')}
-          onOpenContradictions={() => setCurrentRoute('contradictions')}
-        />
-      )}
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto relative z-10 transition-all duration-300">
+        {currentRoute === 'matters' && (
+          <MattersList
+            matters={matters.filter(m => !m.isArchived && !m.isCollaborative)}
+            isLoading={isLoading}
+            onSelectMatter={(matter) => {
+              setSelectedMatter(matter);
+              setCurrentRoute('matter-detail');
+            }}
+            onOpenCreateModal={() => setIsCreateModalOpen(true)}
+            onOpenMobileSidebar={handleToggleSidebar}
+            onTogglePin={(matter) => updateMatter({ ...matter, isPinned: !matter.isPinned })}
+          />
+        )}
 
-      {currentRoute === 'matter-detail' && (
-        <MatterDashboard
-          matter={selectedMatter!}
-          onBack={() => setCurrentRoute('matters')}
-          onOpenCitation={handleOpenCitation}
-          onOpenPipeline={() => setCurrentRoute('pipeline')}
-          onOpenContradictions={() => setCurrentRoute('contradictions')}
-          onOpenDraftGenerator={() => setIsDraftModalOpen(true)}
-          onOpenDocuments={() => setCurrentRoute('documents')}
-        />
-      )}
+        {currentRoute === 'matter-detail' && (
+          <MatterDashboard
+            matter={selectedMatter!}
+            onBack={() => setCurrentRoute('matters')}
+            onOpenCitation={handleOpenCitation}
+            onOpenDraftGenerator={() => setIsDraftModalOpen(true)}
+            onOpenDocuments={() => setCurrentRoute('documents')}
+            onOpenMobileSidebar={handleToggleSidebar}
+            onUpdateMatter={updateMatter}
+            onDeleteMatter={deleteMatter}
+          />
+        )}
 
-      {currentRoute === 'pipeline' && (
-        <DocumentPipeline
-          matter={selectedMatter!}
-          onBack={() => setCurrentRoute('matter-detail')}
-          onOpenMatter={() => setCurrentRoute('matter-detail')}
-        />
-      )}
+        {currentRoute === 'documents' && (
+          <DocumentsList
+            onBack={() => setCurrentRoute('matter-detail')}
+            onOpenCitation={handleOpenCitation}
+            matter={selectedMatter!}
+            onOpenMobileSidebar={handleToggleSidebar}
+          />
+        )}
 
-      {currentRoute === 'contradictions' && (
-        <ContradictionsGaps
-          onBack={() => setCurrentRoute('matter-detail')}
-          onOpenCitation={handleOpenCitation}
-          onCreateIssueFromFinding={handleCreateIssueFromContradiction}
-        />
-      )}
+        {currentRoute === 'settings' && (
+          <SettingsView
+            activeWorkspace={activeWorkspace}
+            onBack={() => setCurrentRoute('matters')}
+            onOpenMobileSidebar={handleToggleSidebar}
+          />
+        )}
 
-      {currentRoute === 'documents' && (
-        <DocumentsList
-          onBack={() => setCurrentRoute('matter-detail')}
-          onOpenCitation={handleOpenCitation}
-          matter={selectedMatter!}
-        />
-      )}
+        {currentRoute === 'projects' && (
+          <MattersList
+            matters={matters.filter(m => m.isCollaborative && !m.isArchived)}
+            isLoading={isLoading}
+            onSelectMatter={(matter) => {
+              setSelectedMatter(matter);
+              setCurrentRoute('matter-detail');
+            }}
+            onOpenCreateModal={() => setIsCreateModalOpen(true)}
+            onOpenMobileSidebar={handleToggleSidebar}
+            onTogglePin={(matter) => updateMatter({ ...matter, isPinned: !matter.isPinned })}
+          />
+        )}
 
-      {currentRoute === 'settings' && (
-        <SettingsView
-          activeWorkspace={activeWorkspace}
-          onBack={() => setCurrentRoute('matters')}
-        />
-      )}
+        {currentRoute === 'library' && (
+          <LibraryView onOpenMobileSidebar={handleToggleSidebar} />
+        )}
+
+        {currentRoute === 'profile' && (
+          <UserProfileView onOpenMobileSidebar={handleToggleSidebar} />
+        )}
+      </div>
 
       {/* Global Modals */}
       <CreateMatterModal

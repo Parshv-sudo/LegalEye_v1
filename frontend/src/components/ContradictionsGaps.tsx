@@ -37,8 +37,14 @@ export function ContradictionsGaps({
   };
 
   const handleDismissContradiction = (id: string) => {
-    setContradictions(contradictions.map((c) => (c.id === id ? { ...c, status: 'dismissed' } : c)));
-    showToast('Discrepancy marked as dismissed.');
+    const current = contradictions.find(c => c.id === id);
+    if (current?.status === 'dismissed') {
+      setContradictions(contradictions.map((c) => (c.id === id ? { ...c, status: 'unresolved' } : c)));
+      showToast('Discrepancy re-opened.');
+    } else {
+      setContradictions(contradictions.map((c) => (c.id === id ? { ...c, status: 'dismissed' } : c)));
+      showToast('Discrepancy marked as dismissed.');
+    }
   };
 
   const handleFlagForCounsel = (id: string) => {
@@ -56,12 +62,18 @@ export function ContradictionsGaps({
 
   const handleRequestDocument = (gapId: string) => {
     setGaps(gaps.map((g) => (g.id === gapId ? { ...g, status: 'requested' } : g)));
-    showToast('Document request email drafted and sent to client liaison.');
+    showToast('Document request logged. (Email integration pending)');
   };
 
   const handleIgnoreGap = (gapId: string) => {
-    setGaps(gaps.map((g) => (g.id === gapId ? { ...g, status: 'ignored' } : g)));
-    showToast('Missing document reference ignored.');
+    const current = gaps.find(g => g.id === gapId);
+    if (current?.status === 'ignored') {
+      setGaps(gaps.map((g) => (g.id === gapId ? { ...g, status: 'open' } : g)));
+      showToast('Missing document reference re-opened.');
+    } else {
+      setGaps(gaps.map((g) => (g.id === gapId ? { ...g, status: 'ignored' } : g)));
+      showToast('Missing document reference ignored.');
+    }
   };
 
   const unresolvedCount = contradictions.filter((c) => c.status === 'unresolved').length;
@@ -162,7 +174,7 @@ export function ContradictionsGaps({
               Evidentiary Cross-Reference Matrix
             </h2>
             <p className="text-xs text-gray-300 leading-relaxed mt-1">
-              The system has cross-referenced {matter?.indexedCount || 42} indexed documents in {matterCode} and identified potential factual discrepancies and missing information critical to the case timeline.
+              The system has cross-referenced {matter?.indexedCount || 0} indexed documents in {matterCode} and identified potential factual discrepancies and missing information critical to the case timeline.
             </p>
           </div>
         </div>
@@ -279,12 +291,12 @@ export function ContradictionsGaps({
                 </div>
 
                 {/* Footer Action Buttons */}
-                <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center justify-end gap-2 text-xs">
+                  <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center justify-end gap-2 text-xs">
                   <button
                     onClick={() => handleDismissContradiction(finding.id)}
-                    className="px-3 py-1.5 border border-gray-300 rounded text-gray-700 hover:bg-gray-100 font-medium transition-colors cursor-pointer"
+                    className={`px-3 py-1.5 border rounded font-medium transition-colors cursor-pointer ${finding.status === 'dismissed' ? 'border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
                   >
-                    Dismiss
+                    {finding.status === 'dismissed' ? 'Re-open' : 'Dismiss'}
                   </button>
                   <button
                     onClick={() => handleCreateIssue(finding)}
@@ -346,6 +358,13 @@ export function ContradictionsGaps({
                     <span className="text-xs font-semibold text-[#2D5A27] bg-green-50 px-2.5 py-1 rounded border border-green-200">
                       Request Dispatched
                     </span>
+                  ) : gap.status === 'ignored' ? (
+                    <button
+                      onClick={() => handleIgnoreGap(gap.id)}
+                      className="px-3 py-1.5 border border-amber-300 rounded text-amber-700 bg-amber-50 hover:bg-amber-100 font-medium transition-colors cursor-pointer text-xs"
+                    >
+                      Re-open
+                    </button>
                   ) : (
                     <>
                       <button

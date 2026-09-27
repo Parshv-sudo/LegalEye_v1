@@ -7,9 +7,8 @@ interface MattersListProps {
   isLoading?: boolean;
   onSelectMatter: (matter: Matter) => void;
   onOpenCreateModal: () => void;
-  onOpenPipeline: () => void;
-  onOpenContradictions: () => void;
   onOpenMobileSidebar?: () => void;
+  onTogglePin: (matter: Matter) => void;
 }
 
 export function MattersList({
@@ -17,9 +16,8 @@ export function MattersList({
   isLoading = false,
   onSelectMatter,
   onOpenCreateModal,
-  onOpenPipeline,
-  onOpenContradictions,
   onOpenMobileSidebar,
+  onTogglePin,
 }: MattersListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('All');
@@ -129,16 +127,6 @@ export function MattersList({
               </button>
             )}
           </div>
-
-          {canCreateMatter && (
-            <button
-              onClick={onOpenCreateModal}
-              className="px-4 py-2 bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white rounded text-xs font-bold flex items-center gap-2 shadow-xs transition-colors shrink-0 cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">add</span>
-              <span>+ Create Matter</span>
-            </button>
-          )}
         </div>
       </header>
 
@@ -161,23 +149,6 @@ export function MattersList({
               {filter === 'Pending' && `(${matters.filter((m) => m.status === 'Pending').length})`}
             </button>
           ))}
-
-          <div className="ml-auto flex items-center gap-2 shrink-0">
-            <button
-              onClick={onOpenPipeline}
-              className="text-xs text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[16px]" aria-hidden="true">schema</span>
-              Queue Pipeline
-            </button>
-            <button
-              onClick={onOpenContradictions}
-              className="text-xs text-red-800 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[16px]" aria-hidden="true">rule</span>
-              Contradictions &amp; Gaps
-            </button>
-          </div>
         </div>
 
         {/* Matters Table */}
@@ -242,7 +213,7 @@ export function MattersList({
                         <div className="w-8 h-8 rounded bg-[#0A192F]/5 group-hover:bg-[#115fd4]/10 text-[#0A192F] group-hover:text-[#115fd4] flex items-center justify-center shrink-0 transition-colors">
                           <span className="material-symbols-outlined text-[18px]" aria-hidden="true">folder</span>
                         </div>
-                        <div>
+                        <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <span className="font-mono text-[11px] font-bold text-[#115fd4]">
                               {matter.code}
@@ -287,18 +258,20 @@ export function MattersList({
                     <td className="py-4 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                         <button
-                          onClick={() => onSelectMatter(matter)}
-                          className="px-2.5 py-1 bg-gray-100 hover:bg-[#0A192F] hover:text-white rounded text-[11px] font-semibold text-gray-700 transition-colors cursor-pointer"
+                          onClick={() => onTogglePin(matter)}
+                          className={`p-1 rounded cursor-pointer transition-colors ${matter.isPinned ? 'text-amber-500 hover:bg-amber-50' : 'text-gray-300 hover:text-amber-500 hover:bg-gray-100'}`}
+                          title={matter.isPinned ? "Unpin Matter" : "Pin Matter"}
+                          aria-label={matter.isPinned ? "Unpin Matter" : "Pin Matter"}
                         >
-                          Open
+                          <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                            {matter.isPinned ? 'keep' : 'keep'}
+                          </span>
                         </button>
                         <button
-                          onClick={() => onOpenContradictions()}
-                          className="p-1 text-gray-400 hover:text-red-600 rounded hover:bg-gray-100 cursor-pointer"
-                          title="View Contradictions"
-                          aria-label="View Contradictions"
+                          onClick={() => onSelectMatter(matter)}
+                          className="px-2.5 py-1 bg-gray-100 hover:bg-[#0A192F] hover:text-white rounded text-[11px] font-semibold text-gray-700 transition-colors cursor-pointer ml-1"
                         >
-                          <span className="material-symbols-outlined text-[18px]" aria-hidden="true">rule</span>
+                          Open
                         </button>
                       </div>
                     </td>
@@ -312,11 +285,6 @@ export function MattersList({
           {/* Table Footer */}
           <div className="px-4 py-3 bg-[#F8F9FA] border-t border-gray-200 flex items-center justify-between text-xs text-gray-500">
             <span>Showing {filteredMatters.length} of {matters.length} total matters</span>
-            <div className="flex items-center gap-2">
-              <button disabled className="px-2 py-1 border border-gray-300 rounded bg-white text-gray-400 cursor-not-allowed">Previous</button>
-              <span className="font-semibold text-gray-800">Page 1 of 1</span>
-              <button disabled className="px-2 py-1 border border-gray-300 rounded bg-white text-gray-400 cursor-not-allowed">Next</button>
-            </div>
           </div>
         </div>
       </main>

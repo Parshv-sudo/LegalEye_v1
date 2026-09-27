@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { PipelineDoc, Matter } from '../types';
 import { initialPipelineDocs } from '../data/mockData';
 import { OcrReviewModal } from './OcrReviewModal';
@@ -10,11 +10,11 @@ interface DocumentPipelineProps {
   onOpenMatter: () => void;
   matter?: Matter;
   onOpenMobileSidebar?: () => void;
+  pipelineDocs: PipelineDoc[];
+  setPipelineDocs: React.Dispatch<React.SetStateAction<PipelineDoc[]>>;
 }
 
-export function DocumentPipeline({ onBack, matter, onOpenMobileSidebar }: DocumentPipelineProps) {
-  const [pipelineDocs, setPipelineDocs] = useState<PipelineDoc[]>(initialPipelineDocs);
-  const [isQueuePaused, setIsQueuePaused] = useState(false);
+export function DocumentPipeline({ onBack, matter, onOpenMobileSidebar, pipelineDocs, setPipelineDocs }: DocumentPipelineProps) {
   const [reviewingDoc, setReviewingDoc] = useState<PipelineDoc | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -118,17 +118,17 @@ export function DocumentPipeline({ onBack, matter, onOpenMobileSidebar }: Docume
 
         const response = await ingestApi.upload(parseInt(matter.id), file);
         
-        // Final update
+        // Final update — backend returns flat: { id, file_name, pages, chunks_indexed, status }
         setPipelineDocs((prev) =>
           prev.map((d) => {
             if (d.id !== docId) return d;
             return {
               ...d,
-              pages: response.data.document.pages || 0,
+              pages: response.data.pages || 0,
               ocr: 'completed',
               classifying: 'completed',
               indexed: 'completed',
-              progressLabel: `Indexed via Backend API`
+              progressLabel: `Indexed ${response.data.chunks_indexed || 0} chunks via Backend API`
             };
           })
         );
@@ -199,68 +199,24 @@ export function DocumentPipeline({ onBack, matter, onOpenMobileSidebar }: Docume
       <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 sticky top-0 z-20 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-              {onOpenMobileSidebar && (
-                <button
-                  onClick={onOpenMobileSidebar}
-                  className="md:hidden text-gray-600 hover:text-gray-900 p-1 -ml-1 rounded transition-colors"
-                  aria-label="Open navigation menu"
-                >
-                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">menu</span>
-                </button>
-              )}
-              <button onClick={onBack} className="hover:text-[#0A192F] flex items-center gap-1 cursor-pointer">
-                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_back</span>
-                Matters
-              </button>
-              <span>/</span>
-              <span className="text-gray-700 font-mono">{matterCode}</span>
-              <span>/</span>
-              <span className="text-[#0A192F] font-bold">Processing Pipeline</span>
-            </div>
+
 
             <div className="flex items-center gap-3 mt-1">
               <h1 className="text-xl md:text-2xl font-heading font-bold text-[#0A192F]">
                 Document Processing Pipeline
               </h1>
-              <div className="flex items-center gap-1.5 bg-emerald-50 text-[#2D5A27] border border-emerald-200 px-2.5 py-0.5 rounded-full text-xs font-semibold">
-                <span className="w-2 h-2 rounded-full bg-[#2D5A27] animate-pulse"></span>
-                <span>{isQueuePaused ? 'Queue Paused' : 'Processing Active'}</span>
-              </div>
+              {inProgressCount > 0 ? (
+                <div className="flex items-center gap-1.5 bg-emerald-50 text-[#2D5A27] border border-emerald-200 px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-[#2D5A27] animate-pulse"></span>
+                  <span>Processing Active</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 bg-gray-50 text-gray-500 border border-gray-200 px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-gray-400"></span>
+                  <span>Idle</span>
+                </div>
+              )}
             </div>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={() => {
-                setIsQueuePaused(!isQueuePaused);
-                showToast(isQueuePaused ? 'Ingestion queue resumed.' : 'Ingestion queue paused.');
-              }}
-              className="px-3.5 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 text-xs font-semibold rounded shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
-                {isQueuePaused ? 'play_arrow' : 'pause'}
-              </span>
-              {isQueuePaused ? 'Resume Queue' : 'Pause Queue'}
-            </button>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept=".pdf,.docx,.txt"
-              onChange={(e) => handleRealFileUpload(e.target.files)}
-              className="hidden"
-              aria-label="Upload documents"
-            />
-
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white text-xs font-bold rounded shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[16px]" aria-hidden="true">upload_file</span>
-              Upload Briefs
-            </button>
           </div>
         </div>
       </header>
@@ -269,56 +225,41 @@ export function DocumentPipeline({ onBack, matter, onOpenMobileSidebar }: Docume
       <main className="p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-5">
         {/* Batch Status Banner */}
         <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-5 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
+          {pipelineDocs.length > 0 ? (
+            <>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-sm font-bold text-[#0A192F] font-heading">
+                    Batch Ingestion Progress
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {pipelineDocs.length} files in active batch • {completedCount} completed, {inProgressCount} in progress, {failedCount} failed
+                  </p>
+                </div>
+                <span className="text-sm font-mono font-bold text-[#115fd4]">
+                  {Math.round((completedCount / pipelineDocs.length) * 100)}% Completed
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                <div
+                  className="bg-[#115fd4] h-full transition-all duration-500 rounded-full"
+                  style={{ width: `${Math.round((completedCount / pipelineDocs.length) * 100)}%` }}
+                ></div>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center py-4">
               <h2 className="text-sm font-bold text-[#0A192F] font-heading">
-                Batch Ingestion Progress
+                No active ingestion batch
               </h2>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {pipelineDocs.length} files in active batch • {completedCount} completed, {inProgressCount} in progress, {failedCount} failed
+              <p className="text-xs text-gray-500 mt-1">
+                Click "Upload Briefs" to add files to the pipeline.
               </p>
             </div>
-            <span className="text-sm font-mono font-bold text-[#115fd4]">
-              {pipelineDocs.length > 0 ? `${Math.round((completedCount / pipelineDocs.length) * 100)}%` : '0%'} Completed
-            </span>
-          </div>
-
-          {/* Progress bar */}
-          <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-            <div
-              className="bg-[#115fd4] h-full transition-all duration-500 rounded-full"
-              style={{ width: '65%' }}
-            ></div>
-          </div>
+          )}
         </div>
 
-        {/* Drag and Drop Zone */}
-        <div
-          onClick={() => handleUploadNewFile(`Exhibit_E_Deposition_${Date.now().toString().slice(-3)}.pdf`)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleUploadNewFile(`Exhibit_E_Deposition_${Date.now().toString().slice(-3)}.pdf`);
-            }
-          }}
-          className={`border-2 border-dashed bg-white rounded-lg p-10 text-center cursor-pointer transition-all duration-300 group shadow-sm ${
-            pipelineDocs.length === 0 ? 'border-gray-300 hover:border-[#111111]' : 'border-gray-200 hover:border-gray-400'
-          }`}
-        >
-          <div className="w-16 h-16 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center mx-auto mb-4 transition-colors">
-            <span className="material-symbols-outlined text-3xl text-gray-400 group-hover:text-[#111111] transition-colors" aria-hidden="true">
-              cloud_upload
-            </span>
-          </div>
-          <p className="text-base font-medium text-gray-900 mb-1">
-            Drag & drop legal briefs, exhibits, or memos here
-          </p>
-          <p className="text-xs text-gray-500">
-            Supported formats: Native PDF, Scanned Images (OCR 300+ DPI), Word Documents up to 100MB
-          </p>
-        </div>
+
 
         {/* Pipeline Matrix Table */}
         <div className="bg-white border border-gray-200 rounded-lg shadow-xs overflow-hidden">
@@ -326,7 +267,7 @@ export function DocumentPipeline({ onBack, matter, onOpenMobileSidebar }: Docume
             <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">
               Pipeline Stage Matrix
             </h3>
-            <span className="text-xs text-gray-400">Auto-refreshing live</span>
+            <span className="text-xs text-gray-400">{inProgressCount > 0 ? 'Processing in progress...' : `${completedCount} of ${pipelineDocs.length} completed`}</span>
           </div>
 
           <div className="overflow-x-auto">

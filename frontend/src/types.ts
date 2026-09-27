@@ -57,6 +57,9 @@ export interface Matter {
   jurisdiction: string;
   nextHearing: string;
   status: MatterStatus;
+  isPinned?: boolean;
+  isArchived?: boolean;
+  isCollaborative?: boolean;
   keyIssues: KeyIssue[];
   missingInfoNote: string;
   summaryText: Array<{
@@ -66,6 +69,7 @@ export interface Matter {
   timeline: ProceduralEvent[];
   documentsCount: number;
   indexedCount: number;
+  documents?: any[];
   opposingCounsels: OpposingCounsel[];
   internalNotes: string;
   members: MatterMember[];
@@ -154,4 +158,7 @@ export type ViewRoute =
   | 'pipeline'
   | 'contradictions'
   | 'documents'
-  | 'settings';
+  | 'settings'
+  | 'profile'
+  | 'projects'
+  | 'library';

@@ -39,40 +39,21 @@ export function DocumentsList({ onBack, onOpenCitation, matter, onOpenMobileSide
 
   return (
     <div className="flex-1 flex flex-col min-w-0 bg-[#F0F2F5] overflow-y-auto">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 sticky top-0 z-20 shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-              {onOpenMobileSidebar && (
-                <button
-                  onClick={onOpenMobileSidebar}
-                  className="md:hidden text-gray-600 hover:text-gray-900 p-1 -ml-1 rounded transition-colors"
-                  aria-label="Open navigation menu"
-                >
-                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">menu</span>
-                </button>
-              )}
-              <button onClick={onBack} className="hover:text-[#0A192F] flex items-center gap-1 cursor-pointer">
-                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_back</span>
-                Matters
-              </button>
-              <span>/</span>
-              <span className="text-gray-700 font-mono">{matterCode}</span>
-              <span>/</span>
-              <span className="text-[#0A192F] font-bold">Indexed Documents</span>
-            </div>
 
-            <div className="flex items-center gap-3 mt-1">
-              <h1 className="text-xl md:text-2xl font-heading font-bold text-[#0A192F]">
-                Matter Corpus &amp; Document Index
-              </h1>
-              <span className="bg-green-50 text-[#2D5A27] border border-green-200 text-xs font-bold px-2.5 py-0.5 rounded-full">
-                {matter?.indexedCount || 42} Documents Indexed
-              </span>
-            </div>
+      {/* List */}
+      <main className="p-6 max-w-[1600px] w-full mx-auto space-y-4 flex-1">
+        
+        {/* Top Actions: Title + Search */}
+        <div className="flex items-center justify-between pb-2">
+          <div className="flex items-center gap-3">
+            <h2 className="text-sm font-bold text-[#0A192F] font-heading uppercase tracking-wider">
+              Matter Corpus & Document Index
+            </h2>
+            <span className="bg-emerald-50 text-[#2D5A27] border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full">
+              {matter?.indexedCount || documents.length} Indexed
+            </span>
           </div>
-
+          
           <div className="relative w-full md:w-64">
             <span className="material-symbols-outlined absolute left-3 top-2 text-gray-400 text-[18px]" aria-hidden="true">
               search
@@ -82,14 +63,11 @@ export function DocumentsList({ onBack, onOpenCitation, matter, onOpenMobileSide
               value={searchDoc}
               onChange={(e) => setSearchDoc(e.target.value)}
               placeholder="Search indexed corpus..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs bg-gray-50 border border-gray-300 rounded focus:bg-white focus:outline-none"
+              className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-gray-300 rounded focus:border-[#0A192F] focus:outline-none shadow-xs"
             />
           </div>
         </div>
-      </header>
 
-      {/* List */}
-      <main className="p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-4">
         <div className="bg-white border border-gray-200 rounded-lg shadow-xs overflow-hidden">
           <table className="w-full text-left border-collapse text-xs">
             <thead>

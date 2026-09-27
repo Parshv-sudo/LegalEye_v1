@@ -32,11 +32,20 @@ export function CitationDetailModal({ citation, onClose }: CitationDetailModalPr
 
   const handleExport = () => {
     setIsExporting(true);
-    setTimeout(() => {
-      setIsExporting(false);
-      setExportNotice(`Exported ${citation.docTitle} (p. ${currentPage}) with verified watermark.`);
-      setTimeout(() => setExportNotice(null), 3000);
-    }, 600);
+    // Generate a text-based excerpt as a downloadable file
+    const content = `Source Citation: ${citation.docTitle}\nPage: ${currentPage}\nMatch: ${citation.matchPercentage}%\nCategory: ${citation.sourceCategory}\n\nCited Snippet:\n"${citation.citedSnippet}"`;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Citation_${citation.docTitle}_p${currentPage}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setIsExporting(false);
+    setExportNotice(`Exported citation excerpt for ${citation.docTitle} (p. ${currentPage}).`);
+    setTimeout(() => setExportNotice(null), 3000);
   };
 
   return (

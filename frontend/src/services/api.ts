@@ -62,6 +62,7 @@ export const matterApi = {
 
 export const documentApi = {
     getAll: (matterId: number) => api.get(`documents/?matter_id=${matterId}`),
+    getAllGlobal: () => api.get('documents/'),
     create: (data: any) => api.post('documents/', data),
     update: (id: number, data: any) => api.patch(`documents/${id}/`, data),
 };

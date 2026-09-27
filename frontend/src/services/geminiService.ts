@@ -45,7 +45,7 @@ export interface ContradictionResult {
 
 export function getApiKey(): string | null {
   // Read from Vite environment variables
-  return import.meta.env.VITE_GEMINI_API_KEY || null;
+  return (import.meta as any).env?.VITE_GEMINI_API_KEY || null;
 }
 
 export function isApiKeyConfigured(): boolean {

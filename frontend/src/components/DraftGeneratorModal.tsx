@@ -132,9 +132,11 @@ export function DraftGeneratorModal({ isOpen, onClose, matter }: DraftGeneratorM
                 onChange={(e) => setDraftType(e.target.value)}
                 className="w-full text-xs p-2 border border-gray-300 rounded bg-white font-medium text-gray-800 focus:ring-1 focus:ring-[#0A192F]"
               >
+                <option>Plaint (Original Civil Suit)</option>
                 <option>Written Statement / Reply to Statement of Claim</option>
                 <option>Application under Order 39 Rules 1 &amp; 2 (Interim Injunction)</option>
                 <option>Legal Notice for Breach of Confidentiality</option>
+                <option>Affidavit of Evidence</option>
                 <option>Chronology of Events &amp; Synopsis</option>
               </select>
             </div>
@@ -210,7 +212,7 @@ export function DraftGeneratorModal({ isOpen, onClose, matter }: DraftGeneratorM
                   aria-label="Export as Word document"
                 >
                   <span className="material-symbols-outlined text-[14px]" aria-hidden="true">file_download</span>
-                  Export .DOCX
+                  Export .TXT
                 </button>
               </div>
             </div>
