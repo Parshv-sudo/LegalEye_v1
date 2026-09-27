@@ -116,14 +116,15 @@ function AppContent() {
   };
 
   const handleCreateMatter = async (newMatterData: Partial<Matter>) => {
-    const newCode = `G&S-2023-${Math.floor(10 + Math.random() * 90)}`;
+    const currentYear = new Date().getFullYear();
+    const newCode = `G&S-${currentYear}-${Math.floor(10 + Math.random() * 90)}`;
     const fullMatter = {
       code: newCode,
       title: newMatterData.title || 'New Matter',
       client: newMatterData.client || 'Client Representation',
       case_description: 'Newly initialized litigation matter corpus with scheduled hearing.',
       jurisdiction: newMatterData.jurisdiction || 'Delhi High Court',
-      next_hearing: newMatterData.nextHearing || 'Nov 20, 2023',
+      next_hearing: newMatterData.nextHearing || `Nov 20, ${currentYear}`,
       status: 'Active',
       internal_notes: '',
       missing_info_note: 'Initial indexing complete. Verify subsequent rejoinder submissions.',
