@@ -78,7 +78,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             </div>
             <div>
               <h1 className="font-heading font-bold text-2xl tracking-wide text-white">
-                Legal &amp; Lens
+                LegalEye
               </h1>
               <p className="text-xs text-blue-200 uppercase tracking-widest font-sans">
                 Litigation Intelligence Engine

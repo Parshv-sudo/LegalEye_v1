@@ -143,7 +143,7 @@ export function ContradictionsGaps({
 
             <div className="flex items-center gap-3 mt-1">
               <h1 className="text-xl md:text-2xl font-heading font-bold text-[#0A192F]">
-                Algorithmic Contradictions &amp; Gaps
+                Cross-Reference Analysis
               </h1>
               <span className="bg-red-50 text-red-700 border border-red-200 text-xs font-bold px-2.5 py-0.5 rounded-full">
                 {unresolvedCount} Unresolved Findings
@@ -239,13 +239,10 @@ export function ContradictionsGaps({
                   <div className="bg-[#F8F9FA] border border-gray-200 rounded p-4 flex flex-col justify-between space-y-3">
                     <div>
                       <div className="flex items-center justify-between text-xs text-gray-500 pb-2 border-b border-gray-200">
-                        <span className="font-semibold text-gray-800">{finding.statementA.source}</span>
-                        <button
-                          onClick={() => onOpenCitation(`Doc 4, p.${finding.statementA.page}`)}
-                          className="text-[#115fd4] font-mono hover:underline text-[11px] cursor-pointer"
-                        >
+                        <span className="font-semibold text-gray-800 truncate max-w-[60%]">{finding.statementA.source}</span>
+                        <span className="text-[#115fd4] font-mono text-[11px]">
                           Page {finding.statementA.page}
-                        </button>
+                        </span>
                       </div>
                       <p className="text-xs leading-relaxed text-gray-800 mt-2 font-serif text-justify">
                         {finding.statementA.text.split(finding.statementA.highlight).map((part, i, arr) => (
@@ -260,19 +257,23 @@ export function ContradictionsGaps({
                         ))}
                       </p>
                     </div>
+                    <button
+                      onClick={() => onOpenCitation(`Doc ${finding.statementA.source}, p.${finding.statementA.page}`)}
+                      className="self-start px-3 py-1.5 bg-[#115fd4]/10 text-[#115fd4] border border-[#115fd4]/20 rounded text-[11px] font-semibold hover:bg-[#115fd4]/20 transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-[14px]" aria-hidden="true">visibility</span>
+                      View Evidence
+                    </button>
                   </div>
 
                   {/* Statement B */}
                   <div className="bg-[#F8F9FA] border border-gray-200 rounded p-4 flex flex-col justify-between space-y-3">
                     <div>
                       <div className="flex items-center justify-between text-xs text-gray-500 pb-2 border-b border-gray-200">
-                        <span className="font-semibold text-gray-800">{finding.statementB.source}</span>
-                        <button
-                          onClick={() => onOpenCitation(`Doc 7, p.${finding.statementB.page}`)}
-                          className="text-[#115fd4] font-mono hover:underline text-[11px] cursor-pointer"
-                        >
+                        <span className="font-semibold text-gray-800 truncate max-w-[60%]">{finding.statementB.source}</span>
+                        <span className="text-[#115fd4] font-mono text-[11px]">
                           Page {finding.statementB.page}
-                        </button>
+                        </span>
                       </div>
                       <p className="text-xs leading-relaxed text-gray-800 mt-2 font-serif text-justify">
                         {finding.statementB.text.split(finding.statementB.highlight).map((part, i, arr) => (
@@ -287,6 +288,13 @@ export function ContradictionsGaps({
                         ))}
                       </p>
                     </div>
+                    <button
+                      onClick={() => onOpenCitation(`Doc ${finding.statementB.source}, p.${finding.statementB.page}`)}
+                      className="self-start px-3 py-1.5 bg-[#115fd4]/10 text-[#115fd4] border border-[#115fd4]/20 rounded text-[11px] font-semibold hover:bg-[#115fd4]/20 transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-[14px]" aria-hidden="true">visibility</span>
+                      View Evidence
+                    </button>
                   </div>
                 </div>
 

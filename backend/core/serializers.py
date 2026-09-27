@@ -1,3 +1,4 @@
+import json
 from rest_framework import serializers
 from .models import Organization, UserProfile, Matter, Document, KeyIssue, TimelineEvent, AiChatLog
 from django.contrib.auth.models import User
@@ -68,6 +69,17 @@ class MatterSerializer(serializers.ModelSerializer):
         timeline_events = instance.timeline_events.all()
         documents = instance.documents.all()
         
+        # Parse JSON fields
+        try:
+            summary_text = json.loads(instance.summary_text_json) if instance.summary_text_json else []
+        except (json.JSONDecodeError, TypeError):
+            summary_text = []
+
+        try:
+            opposing_counsels = json.loads(instance.opposing_counsels_json) if instance.opposing_counsels_json else []
+        except (json.JSONDecodeError, TypeError):
+            opposing_counsels = []
+
         return {
             'id': str(instance.id),
             'code': instance.code,
@@ -107,10 +119,12 @@ class MatterSerializer(serializers.ModelSerializer):
             'documentsCount': documents.count(),
             'indexedCount': documents.filter(indexed='completed').count(),
             
-            # These don't have backend models yet — return empty defaults
-            'summaryText': [],
+            # JSON-stored structured data
+            'summaryText': summary_text,
+            'opposingCounsels': opposing_counsels,
+            
+            # Members don't have a backend model yet — return empty
             'members': [],
-            'opposingCounsels': [],
         }
 
     def to_internal_value(self, data):
@@ -161,6 +175,9 @@ class MatterSerializer(serializers.ModelSerializer):
         validated_data.pop('summaryText', None)
         validated_data.pop('members', None)
         validated_data.pop('opposingCounsels', None)
+        # Convert organization int → organization_id for Django FK assignment
+        if 'organization' in validated_data and isinstance(validated_data['organization'], int):
+            validated_data['organization_id'] = validated_data.pop('organization')
         return Matter.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
@@ -170,6 +187,9 @@ class MatterSerializer(serializers.ModelSerializer):
         validated_data.pop('summaryText', None)
         validated_data.pop('members', None)
         validated_data.pop('opposingCounsels', None)
+        # Convert organization int → organization_id for Django FK assignment
+        if 'organization' in validated_data and isinstance(validated_data['organization'], int):
+            validated_data['organization_id'] = validated_data.pop('organization')
         
         for attr, value in validated_data.items():
             setattr(instance, attr, value)

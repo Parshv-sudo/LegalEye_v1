@@ -9,7 +9,7 @@ from .serializers import (
     OrganizationSerializer, UserProfileSerializer, MatterSerializer, 
     DocumentSerializer, KeyIssueSerializer, TimelineEventSerializer, AiChatLogSerializer
 )
-from .rag import ingest_document, retrieve_chunks, generate_grounded_response, generate_draft_text, analyze_contradictions
+from .rag import ingest_document, retrieve_chunks, generate_grounded_response, generate_draft_text, analyze_contradictions, _load_chunks
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
@@ -77,7 +77,7 @@ def chat_with_matter(request):
     POST /api/chat/
     Body: { "matter_id": int, "query": str }
     
-    Retrieves relevant chunks from ChromaDB, generates a grounded AI response,
+    Retrieves relevant chunks from the chunk store, generates a grounded AI response,
     and persists the exchange to AiChatLog.
     """
     matter_id = request.data.get('matter_id')
@@ -126,6 +126,15 @@ def chat_with_matter(request):
         'citations': ai_result['citations'],
         'confidence': ai_result['confidence'],
         'chunks_used': len(chunks),
+        'retrieval_sources': [
+            {
+                'file_name': c['file_name'],
+                'page': c['page'],
+                'score': round(c.get('score', 0), 3),
+                'snippet': c['text'][:150] + '...' if len(c['text']) > 150 else c['text'],
+            }
+            for c in chunks
+        ],
     })
 
 
@@ -136,7 +145,7 @@ def ingest_document_view(request):
     POST /api/documents/ingest/
     Form data: file (PDF), matter_id (int)
     
-    Uploads a PDF, extracts text, chunks it, and indexes into ChromaDB.
+    Uploads a PDF, extracts text, chunks it, and indexes into the chunk store.
     Also creates/updates the Document record in the database.
     """
     matter_id = request.data.get('matter_id')
@@ -175,7 +184,7 @@ def ingest_document_view(request):
     )
 
     try:
-        # Extract and index into ChromaDB
+        # Extract and index into the chunk store
         chunks_indexed = ingest_document(
             matter_id=matter.id,
             document_id=doc.id,
@@ -215,3 +224,64 @@ def ingest_document_view(request):
             {'error': f'Ingestion failed: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@api_view(['GET'])
+def get_chunk_evidence(request):
+    """
+    GET /api/chunks/?matter_id=X&doc_name=Y&page=Z
+    
+    Returns the actual chunk text for a given document and page.
+    Used by the citation flow to display evidence.
+    """
+    matter_id = request.query_params.get('matter_id')
+    doc_name = request.query_params.get('doc_name', '')
+    page = request.query_params.get('page')
+    doc_num = request.query_params.get('doc_num')
+
+    if not matter_id:
+        return Response(
+            {'error': 'matter_id is required.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        all_chunks = _load_chunks(int(matter_id))
+    except Exception:
+        return Response(
+            {'error': 'Could not load chunks for this matter.'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+    # Filter by document name and/or page
+    results = []
+    for chunk in all_chunks:
+        match = True
+        if doc_name and doc_name not in chunk.get('file_name', ''):
+            match = False
+        if page and chunk.get('page') != int(page):
+            match = False
+        if doc_num and chunk.get('document_id') != int(doc_num):
+            match = False
+        if match:
+            results.append(chunk)
+
+    # If searching by doc_num, also try to get the Document record for metadata
+    doc_meta = None
+    if doc_num:
+        try:
+            doc = Document.objects.get(id=int(doc_num))
+            doc_meta = {
+                'id': doc.id,
+                'file_name': doc.file_name,
+                'file_size': doc.file_size,
+                'pages': doc.pages,
+            }
+        except Document.DoesNotExist:
+            pass
+
+    return Response({
+        'chunks': results,
+        'total': len(results),
+        'document': doc_meta,
+    })

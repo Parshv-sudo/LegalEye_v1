@@ -140,7 +140,7 @@ export interface ChatMessage {
     page: number;
     docName: string;
   }>;
-  supportBadge?: 'Partially Supported' | 'High Confidence' | 'Conflict Detected';
+  supportBadge?: 'Partially Supported' | 'High Confidence' | 'Conflict Detected' | 'Insufficient Evidence';
 }
 
 export interface Workspace {

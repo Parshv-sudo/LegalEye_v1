@@ -99,6 +99,16 @@ export const ingestApi = {
     },
 };
 
+export const chunksApi = {
+    getEvidence: (matterId: number, docName?: string, page?: number, docNum?: number) => {
+        const params = new URLSearchParams({ matter_id: String(matterId) });
+        if (docName) params.append('doc_name', docName);
+        if (page) params.append('page', String(page));
+        if (docNum) params.append('doc_num', String(docNum));
+        return api.get(`chunks/?${params.toString()}`);
+    },
+};
+
 export const authApi = {
     login: (credentials: any) => axios.post(`${API_URL}token/`, credentials),
     verify: (token: string) => axios.post(`${API_URL}token/verify/`, { token }),

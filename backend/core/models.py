@@ -35,6 +35,9 @@ class Matter(models.Model):
     is_pinned = models.BooleanField(default=False)
     is_archived = models.BooleanField(default=False)
     is_collaborative = models.BooleanField(default=False)
+    # JSON fields for structured data without separate models
+    summary_text_json = models.TextField(blank=True, default='[]')
+    opposing_counsels_json = models.TextField(blank=True, default='[]')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -1,5 +1,5 @@
 """
-Legal & Lens — RAG (Retrieval-Augmented Generation) Engine
+LegalEye — RAG (Retrieval-Augmented Generation) Engine
 
 This module handles:
 1. PDF text extraction and page-level chunking (PyPDF2)
@@ -193,15 +193,16 @@ def generate_grounded_response(query: str, chunks: list[dict], matter_title: str
         )
     context_block = "\n\n---\n\n".join(context_parts) if context_parts else "No documents have been indexed for this matter yet."
 
-    system_prompt = f"""You are a senior legal research AI assistant for "Legal & Lens", a litigation intelligence platform.
+    system_prompt = f"""You are a senior legal research AI assistant for "LegalEye", a litigation intelligence platform.
 You are answering questions about the matter: "{matter_title}".
 
 STRICT RULES:
 1. ONLY use information from the provided document excerpts below. Never fabricate facts.
 2. For every factual claim, cite the source using the format [DocName, p.PageNumber].
-3. If the documents do not contain enough information, clearly state what is missing.
+3. If the documents do not contain enough information, clearly state: "Insufficient evidence in the indexed corpus to answer this question."
 4. Be precise, concise, and use formal legal language.
 5. At the end of your response, add a confidence assessment: "High Confidence", "Partially Supported", or "Conflict Detected".
+6. If you cannot find ANY relevant information, respond with: "Insufficient evidence — the indexed documents do not contain information relevant to this query."
 
 DOCUMENT EXCERPTS:
 {context_block}
@@ -213,7 +214,7 @@ DOCUMENT EXCERPTS:
             return {
                 'text': 'No documents have been indexed for this matter yet. Please upload legal documents through the Processing Pipeline to enable AI-powered analysis.',
                 'citations': [],
-                'confidence': 'Partially Supported',
+                'confidence': 'Insufficient Evidence',
             }
         
         # Build a basic response from the chunks themselves
@@ -255,9 +256,11 @@ DOCUMENT EXCERPTS:
         # Detect confidence
         confidence = 'High Confidence'
         lower_text = response_text.lower()
-        if 'conflict detected' in lower_text:
+        if 'insufficient evidence' in lower_text or 'could not find' in lower_text:
+            confidence = 'Insufficient Evidence'
+        elif 'conflict detected' in lower_text or 'contradict' in lower_text:
             confidence = 'Conflict Detected'
-        elif 'partially supported' in lower_text or 'insufficient' in lower_text or 'missing' in lower_text:
+        elif 'partially supported' in lower_text or 'missing' in lower_text or 'unclear' in lower_text:
             confidence = 'Partially Supported'
 
         return {

@@ -11,7 +11,7 @@ interface SettingsViewProps {
 export function SettingsView({ activeWorkspace, onBack, onOpenMobileSidebar }: SettingsViewProps) {
   const [firmName, setFirmName] = useState(activeWorkspace.name);
   const [taxRef, setTaxRef] = useState('GSTIN-07AAAAA0000A1Z5');
-  const [ocrEngine, setOcrEngine] = useState('Google Vision Ultra & Cursive Handwriting Parser');
+  const [ocrEngine, setOcrEngine] = useState('PyPDF2 Text Extraction (Native PDF)');
   const [strictness, setStrictness] = useState('High Precision (Strict Evidentiary Proof)');
   const [autoIndex, setAutoIndex] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -146,8 +146,8 @@ export function SettingsView({ activeWorkspace, onBack, onOpenMobileSidebar }: S
                 onChange={(e) => setOcrEngine(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded bg-white text-gray-800 font-medium"
               >
-                <option>Google Vision Ultra &amp; Cursive Handwriting Parser</option>
-                <option>Standard OCR (Fast Tesseract Engine)</option>
+                <option>PyPDF2 Text Extraction (Native PDF)</option>
+                <option>Basic Text Extraction (Fast)</option>
               </select>
               <p className="text-[11px] text-gray-400 mt-1">Configured server-side. Changes take effect on next ingestion batch.</p>
             </div>

@@ -8,6 +8,7 @@ import { DocumentPipeline } from './DocumentPipeline';
 import { ContradictionsGaps } from './ContradictionsGaps';
 import { DocumentsList } from './DocumentsList';
 import { useAuth } from '../context/AuthContext';
+import { ingestApi } from '../services/api';
 
 interface MatterDashboardProps {
   matter: Matter;
@@ -48,8 +49,17 @@ export function MatterDashboard({
   const [pipelineDocs, setPipelineDocs] = useState<PipelineDoc[]>(initialPipelineDocs);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = (files: FileList | null) => {
+  const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+
+    const matterId = matter?.id ? parseInt(matter.id) : null;
+    if (!matterId) {
+      showToast('No active matter — cannot upload documents.');
+      return;
+    }
+
+    showToast(`Uploading ${files.length} document(s)...`);
+    setActiveTab('pipeline');
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -57,6 +67,7 @@ export function MatterDashboard({
       const fileType: 'pdf' | 'docx' | 'txt' = ext === 'pdf' ? 'pdf' : ext === 'docx' ? 'docx' : 'txt';
       const docId = `p-${Date.now()}-${i}`;
 
+      // Add to pipeline UI in 'active' state
       const newDoc: PipelineDoc = {
         id: docId,
         fileName: file.name,
@@ -65,19 +76,52 @@ export function MatterDashboard({
         type: fileType,
         queued: 'completed',
         ocr: 'active',
-        classifying: 'queued',
-        indexed: 'queued',
-        progressLabel: 'Ingesting...'
+        classifying: 'active',
+        indexed: 'active',
+        progressLabel: 'Uploading to server...'
       };
       setPipelineDocs((prev) => [newDoc, ...prev]);
+
+      // Actually upload to the backend
+      try {
+        const response = await ingestApi.upload(matterId, file);
+        setPipelineDocs((prev) =>
+          prev.map((d) => {
+            if (d.id !== docId) return d;
+            return {
+              ...d,
+              pages: response.data.pages || 0,
+              ocr: 'completed',
+              classifying: 'completed',
+              indexed: 'completed',
+              progressLabel: `Indexed ${response.data.chunks_indexed || 0} chunks`
+            };
+          })
+        );
+        showToast(`"${file.name}" indexed successfully.`);
+      } catch (err) {
+        console.error(`Failed to upload ${file.name}`, err);
+        setPipelineDocs((prev) =>
+          prev.map((d) => {
+            if (d.id !== docId) return d;
+            return {
+              ...d,
+              ocr: 'error',
+              classifying: 'error',
+              indexed: 'error',
+              errorMessage: 'Upload failed',
+              errorSubtitle: 'Could not send file to server',
+              progressLabel: 'Failed'
+            };
+          })
+        );
+        showToast(`Failed to upload "${file.name}".`);
+      }
     }
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-    
-    showToast(`Added ${files.length} document(s) to the pipeline`);
-    setActiveTab('pipeline');
   };
 
   const { hasRole } = useAuth();
@@ -521,19 +565,21 @@ export function MatterDashboard({
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Algorithmic Case Summary (8 cols) */}
+          {/* RIGHT COLUMN: Case Intelligence (8 cols) */}
           <div className="lg:col-span-8 space-y-5 animate-fade-in">
-            {/* Algorithmic Case Summary */}
+            {/* Case Intelligence */}
             <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-5 space-y-4 animate-slide-up">
               <div className="flex items-center justify-between pb-3 border-b border-gray-100">
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] font-heading">
-                    Algorithmic Case Summary
+                    Case Intelligence
                   </h2>
-                  <span className="bg-emerald-50 text-[#2D5A27] border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[12px]">verified</span>
-                    High Confidence
-                  </span>
+                  {(matter.summaryText || []).length > 0 && (
+                    <span className="bg-emerald-50 text-[#2D5A27] border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[12px]">verified</span>
+                      Grounded in {matter.indexedCount || matter.documentsCount || 0} Documents
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={() => { showToast('Re-synthesizing case summary against latest filings...'); }}
@@ -548,8 +594,8 @@ export function MatterDashboard({
                 {(matter.summaryText || []).length === 0 ? (
                   <div className="py-10 flex flex-col items-center justify-center text-gray-500 text-center">
                     <span className="material-symbols-outlined text-4xl text-gray-300 mb-3 animate-pulse">hourglass_empty</span>
-                    <p className="font-semibold text-gray-600">Awaiting Summary Analysis</p>
-                    <p className="text-[11px] text-gray-400 mt-1 max-w-xs">Upload documents and queue the pipeline to automatically synthesize the case facts and legal arguments.</p>
+                    <p className="font-semibold text-gray-600">No Documents Indexed</p>
+                    <p className="text-[11px] text-gray-400 mt-1 max-w-xs">Upload legal documents through the Processing Pipeline to generate an evidence-grounded case intelligence summary.</p>
                   </div>
                 ) : (
                   renderSummaryTextWithCitations()
@@ -660,10 +706,11 @@ export function MatterDashboard({
       {!isSlideoverChatOpen && (
         <button
           onClick={() => setIsSlideoverChatOpen(true)}
-          className="absolute bottom-8 right-8 z-40 bg-[#0A192F] hover:bg-[#112a4d] text-white rounded-full p-4 shadow-xl shadow-[#0A192F]/20 flex items-center justify-center transition-transform hover:scale-105 active:scale-95 border border-gray-700/50"
-          title="Ask AI"
+          className="absolute bottom-8 right-8 z-40 bg-[#0A192F] hover:bg-[#112a4d] text-white rounded-full pl-4 pr-5 py-3 shadow-xl shadow-[#0A192F]/20 flex items-center gap-2.5 transition-transform hover:scale-105 active:scale-95 border border-gray-700/50"
+          title="Ask Matter — Query indexed documents with AI"
         >
-          <span className="material-symbols-outlined text-[28px]">smart_toy</span>
+          <span className="material-symbols-outlined text-[24px]">forum</span>
+          <span className="text-sm font-bold tracking-wide">Ask Matter</span>
         </button>
       )}
 

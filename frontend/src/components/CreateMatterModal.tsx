@@ -26,10 +26,7 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
     { id: '1', name: '', firm: '', email: '' }
   ]);
   const [internalNotes, setInternalNotes] = useState('');
-  const [files, setFiles] = useState<string[]>([
-    'Initial_Pleadings_Notice.pdf',
-    'Vakalatnama_Executed.pdf'
-  ]);
+  const [files, setFiles] = useState<string[]>([]);
 
   if (!isOpen) return null;
 

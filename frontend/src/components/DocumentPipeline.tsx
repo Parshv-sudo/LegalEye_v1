@@ -259,7 +259,36 @@ export function DocumentPipeline({ onBack, matter, onOpenMobileSidebar, pipeline
           )}
         </div>
 
-
+        {/* Upload Drop Zone */}
+        <div
+          className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#115fd4] transition-colors bg-white cursor-pointer"
+          onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-[#115fd4]', 'bg-blue-50'); }}
+          onDragLeave={(e) => { e.preventDefault(); e.currentTarget.classList.remove('border-[#115fd4]', 'bg-blue-50'); }}
+          onDrop={(e) => { e.preventDefault(); e.currentTarget.classList.remove('border-[#115fd4]', 'bg-blue-50'); handleRealFileUpload(e.dataTransfer.files); }}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <span className="material-symbols-outlined text-3xl text-gray-400 mb-2">cloud_upload</span>
+          <p className="text-sm font-semibold text-[#1A1A1A]">Drag & drop PDF files here</p>
+          <p className="text-xs text-gray-500 mt-1">PDF, DOCX, TXT up to 50MB</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept=".pdf,.docx,.txt"
+            className="hidden"
+            onChange={(e) => { handleRealFileUpload(e.target.files); }}
+          />
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+            className="mt-3 px-4 py-2 bg-[#0A192F] hover:bg-[#112a4d] text-white text-xs font-semibold rounded shadow-sm transition-colors"
+          >
+            <span className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[16px]">upload_file</span>
+              Browse Files
+            </span>
+          </button>
+        </div>
 
         {/* Pipeline Matrix Table */}
         <div className="bg-white border border-gray-200 rounded-lg shadow-xs overflow-hidden">

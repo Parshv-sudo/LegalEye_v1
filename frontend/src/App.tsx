@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ViewRoute, Matter, Workspace, CitationDetail } from './types';
 
 import { initialWorkspaces, sampleCitations } from './data/mockData';
+import { chunksApi } from './services/api';
 import { LoginScreen } from './components/LoginScreen';
 import { Sidebar } from './components/Sidebar';
 import { MattersList } from './components/MattersList';
@@ -45,27 +46,73 @@ function AppContent() {
   const [activeCitation, setActiveCitation] = useState<CitationDetail | null>(null);
   const [isDraftModalOpen, setIsDraftModalOpen] = useState(false);
 
-  // Citation opening handler
-  const handleOpenCitation = (key: string) => {
+  // Citation opening handler — looks up real chunk evidence
+  const handleOpenCitation = async (key: string) => {
     if (sampleCitations[key]) {
       setActiveCitation(sampleCitations[key]);
-    } else {
-      const match = key.match(/Doc\s+(\d+),\s*p\.(\d+)/);
-      const docNum = match ? parseInt(match[1], 10) : 4;
-      const pageNum = match ? parseInt(match[2], 10) : 12;
-
-      setActiveCitation({
-        docNum,
-        totalDocs: 42,
-        docTitle: `Document_Pleading_Batch_Doc_${docNum}.pdf`,
-        sourceCategory: 'Verified Evidentiary Filing',
-        pageNumber: pageNum,
-        totalPages: 120,
-        matchPercentage: 96,
-        isPrimarySource: true,
-        citedSnippet: `Clause ${docNum}.${pageNum}: All terms, representations, warranties, and disclosures remain strictly binding upon all signatories under applicable procedural mandates.`
-      });
+      return;
     }
+
+    // Parse the key for document info
+    // Key formats: "Doc X, p.Y" or "Doc filename.pdf, p.Y"
+    const numericMatch = key.match(/Doc\s+(\d+),\s*p\.(\d+)/);
+    const nameMatch = key.match(/Doc\s+(.+\.pdf),\s*p\.(\d+)/i);
+    
+    let docName = '';
+    let pageNum = 1;
+    let docNum = 0;
+
+    if (nameMatch) {
+      docName = nameMatch[1].trim();
+      pageNum = parseInt(nameMatch[2], 10);
+    } else if (numericMatch) {
+      docNum = parseInt(numericMatch[1], 10);
+      pageNum = parseInt(numericMatch[2], 10);
+    }
+
+    // Try to get real chunk data from the backend
+    if (selectedMatter) {
+      try {
+        const response = await chunksApi.getEvidence(
+          Number(selectedMatter.id),
+          docName || undefined,
+          pageNum,
+          docNum || undefined
+        );
+        const data = response.data;
+        if (data.chunks && data.chunks.length > 0) {
+          const chunk = data.chunks[0];
+          setActiveCitation({
+            docNum: chunk.document_id || docNum || 1,
+            totalDocs: selectedMatter.documentsCount || 12,
+            docTitle: chunk.file_name || docName || `Document ${docNum}`,
+            sourceCategory: 'Indexed Evidence',
+            pageNumber: chunk.page || pageNum,
+            totalPages: data.document?.pages || chunk.page || 1,
+            matchPercentage: 98,
+            isPrimarySource: true,
+            citedSnippet: chunk.text?.substring(0, 500) || 'Evidence text not available.',
+            fullPageText: chunk.text || undefined,
+          });
+          return;
+        }
+      } catch (err) {
+        console.warn('Could not fetch chunk evidence, falling back to local data', err);
+      }
+    }
+
+    // Fallback: construct from available info
+    setActiveCitation({
+      docNum: docNum || 1,
+      totalDocs: selectedMatter?.documentsCount || 12,
+      docTitle: docName || `Document ${docNum || 'Unknown'}`,
+      sourceCategory: 'Indexed Filing',
+      pageNumber: pageNum,
+      totalPages: pageNum,
+      matchPercentage: 0,
+      isPrimarySource: false,
+      citedSnippet: 'Evidence text could not be retrieved. Ensure the backend is running and documents are indexed.',
+    });
   };
 
   const handleCreateMatter = async (newMatterData: Partial<Matter>) => {

@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     OrganizationViewSet, UserProfileViewSet, MatterViewSet,
     DocumentViewSet, KeyIssueViewSet, TimelineEventViewSet, AiChatLogViewSet,
-    chat_with_matter, ingest_document_view,
+    chat_with_matter, ingest_document_view, get_chunk_evidence,
 )
 
 router = DefaultRouter()
@@ -18,5 +18,6 @@ router.register(r'chatlogs', AiChatLogViewSet)
 urlpatterns = [
     path('chat/', chat_with_matter, name='chat_with_matter'),
     path('documents/ingest/', ingest_document_view, name='ingest_document'),
+    path('chunks/', get_chunk_evidence, name='get_chunk_evidence'),
     path('', include(router.urls)),
 ]

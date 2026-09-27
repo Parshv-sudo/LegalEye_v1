@@ -101,73 +101,73 @@ export function CitationDetailModal({ citation, onClose }: CitationDetailModalPr
           </div>
         </div>
 
-        {/* Document Viewer Canvas */}
-        <div className="flex flex-col w-full grow bg-[#F0F2F5] overflow-y-auto relative p-5">
-          {/* Simulated High-Fidelity PDF Document Sheet */}
-          <div className="w-full bg-white shadow-md border border-gray-300 rounded relative mb-4 p-8 flex flex-col mx-auto max-w-[850px] min-h-[580px] font-serif text-[#1A1A1A]">
-            
-            {/* Header of Court Document */}
-            <div className="text-center border-b border-gray-200 pb-4 mb-5">
-              <p className="text-[11px] font-sans font-bold uppercase tracking-widest text-gray-500">
-                IN THE HIGH COURT OF DELHI AT NEW DELHI
-              </p>
-              <p className="text-[10px] font-sans text-gray-400 mt-0.5">
-                (EXTRAORDINARY ORIGINAL CIVIL JURISDICTION)
-              </p>
-              <p className="text-xs font-bold font-sans text-gray-800 mt-2">
-                O.M.P. (COMM) NO. 412 OF 2023
-              </p>
-            </div>
-
-            {/* Document Title */}
-            <div className="text-center mb-6">
-              <h3 className="font-bold text-sm uppercase tracking-wide text-[#0A192F]">
-                MEMORANDUM OF LAW &amp; SUBMISSIONS ON RECORD
-              </h3>
-              <p className="text-[11px] italic text-gray-600 font-sans mt-0.5">
-                In the matter of: {citation.docTitle}
-              </p>
-            </div>
-
-            {/* Paragraph Text with realistic legal text */}
-            <div className="space-y-4 text-[13px] leading-relaxed text-gray-800">
-              <p className="text-justify indent-6">
-                14. The respondent erroneously asserts that the proprietary commercial schematics and technical architecture blueprints transferred under the Non-Disclosure Agreement dated October 12, 2021 were general knowledge within the industry sector.
-              </p>
-
-              {/* Highlighted Cited Span */}
-              <div className="relative bg-[#FEF08A]/60 border-2 border-[#EAB308] p-3.5 rounded shadow-xs my-3 transition-all hover:bg-[#FEF08A]/80">
-                <div className="absolute -top-3 right-3 bg-[#B45309] text-white text-[10px] font-sans font-bold px-2 py-0.5 rounded shadow-xs flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[12px]" aria-hidden="true">format_quote</span>
-                  Cited Span
-                </div>
-                <p className="font-medium text-[#1A1A1A] text-[13px] leading-relaxed">
-                  "{citation.citedSnippet}"
+          {/* Document Viewer Canvas */}
+          <div className="flex flex-col w-full grow bg-[#F0F2F5] overflow-y-auto relative p-5">
+            {/* Document Sheet */}
+            <div className="w-full bg-white shadow-md border border-gray-300 rounded relative mb-4 p-8 flex flex-col mx-auto max-w-[850px] min-h-[580px] font-serif text-[#1A1A1A]">
+              
+              {/* Document Title Header */}
+              <div className="text-center border-b border-gray-200 pb-4 mb-5">
+                <p className="text-[11px] font-sans font-bold uppercase tracking-widest text-gray-500">
+                  {citation.sourceCategory}
+                </p>
+                <p className="text-xs font-bold font-sans text-gray-800 mt-2">
+                  {citation.docTitle}
+                </p>
+                <p className="text-[10px] font-sans text-gray-400 mt-0.5">
+                  Page {currentPage}
                 </p>
               </div>
 
-              <p className="text-justify indent-6">
-                15. Furthermore, as settled by the Constitution Bench in authoritative judicial pronouncements, the statutory covenants governing fiduciary commercial transactions restrict subsequent unauthorized vendor engagements without express written waiver.
-              </p>
-
-              <p className="text-justify indent-6">
-                16. The defendant's secondary submission regarding public domain disclosures fails the standard of prior art publication, as verified by the forensic timestamp examination report.
-              </p>
-            </div>
-
-            {/* Signature & Verification Block */}
-            <div className="mt-8 pt-4 border-t border-gray-100 flex justify-between items-end text-xs font-sans text-gray-500">
-              <div>
-                <p className="font-semibold text-gray-700">Drawn by: Chambers of Senior Counsel</p>
-                <p>New Delhi • Dated: 18.10.2023</p>
+              {/* Evidence Content */}
+              <div className="space-y-4 text-[13px] leading-relaxed text-gray-800">
+                {/* Full Page Text if available */}
+                {citation.fullPageText ? (
+                  <>
+                    <div className="relative bg-[#FEF08A]/60 border-2 border-[#EAB308] p-3.5 rounded shadow-xs my-3 transition-all hover:bg-[#FEF08A]/80">
+                      <div className="absolute -top-3 right-3 bg-[#B45309] text-white text-[10px] font-sans font-bold px-2 py-0.5 rounded shadow-xs flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[12px]" aria-hidden="true">format_quote</span>
+                        Cited Evidence
+                      </div>
+                      <p className="font-medium text-[#1A1A1A] text-[13px] leading-relaxed whitespace-pre-line">
+                        {citation.citedSnippet}
+                      </p>
+                    </div>
+                    {citation.fullPageText !== citation.citedSnippet && (
+                      <div className="border-t border-gray-100 pt-4 mt-4">
+                        <p className="text-[10px] font-sans font-semibold uppercase tracking-wider text-gray-400 mb-3">Full Page Context</p>
+                        <p className="text-justify text-[12px] leading-relaxed text-gray-700 whitespace-pre-line">
+                          {citation.fullPageText}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* Cited Snippet Only */
+                  <div className="relative bg-[#FEF08A]/60 border-2 border-[#EAB308] p-3.5 rounded shadow-xs my-3 transition-all hover:bg-[#FEF08A]/80">
+                    <div className="absolute -top-3 right-3 bg-[#B45309] text-white text-[10px] font-sans font-bold px-2 py-0.5 rounded shadow-xs flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[12px]" aria-hidden="true">format_quote</span>
+                      Cited Evidence
+                    </div>
+                    <p className="font-medium text-[#1A1A1A] text-[13px] leading-relaxed whitespace-pre-line">
+                      {citation.citedSnippet}
+                    </p>
+                  </div>
+                )}
               </div>
-              <div className="text-right">
-                <div className="inline-block border-b border-gray-400 w-28 h-6 mb-1"></div>
-                <p className="text-[11px]">Advocate for Petitioner</p>
+
+              {/* Source Footer */}
+              <div className="mt-auto pt-4 border-t border-gray-100 flex justify-between items-end text-xs font-sans text-gray-500">
+                <div>
+                  <p className="font-semibold text-gray-700">{citation.docTitle}</p>
+                  <p>Page {currentPage} of {totalPages}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[11px] text-gray-400">Extracted from indexed corpus</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
         {/* Bottom Pagination & Export Controls */}
         <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-white shrink-0 shadow-xs">

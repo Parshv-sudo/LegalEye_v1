@@ -64,7 +64,7 @@ export function Sidebar({
           {isDesktopOpen && (
             <div className="animate-fadeIn truncate">
               <h1 className="font-heading font-bold text-base leading-tight tracking-wide text-white truncate">
-                Legal &amp; Lens
+                LegalEye
               </h1>
               <p className="text-[11px] text-gray-400 font-sans truncate">Legal Intelligence</p>
             </div>
@@ -293,12 +293,12 @@ export function Sidebar({
           className={`w-full flex items-center transition-colors cursor-pointer text-left hover:bg-[#1a2b47] ${isDesktopOpen ? 'p-3 gap-3' : 'p-3 justify-center'}`}
         >
           <div className="w-8 h-8 rounded-full bg-[#115fd4] flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-xs">
-            JD
+            PM
           </div>
           {(isDesktopOpen || isMobileOpen) && (
             <>
               <div className="overflow-hidden flex-1 animate-fadeIn">
-                <p className="text-xs font-semibold text-white truncate">John Doe</p>
+                <p className="text-xs font-semibold text-white truncate">Adv. Priya Mehta</p>
                 <p className="text-[10px] text-gray-400 truncate">Senior Associate</p>
               </div>
               <span className="material-symbols-outlined text-[18px] text-gray-400 shrink-0">

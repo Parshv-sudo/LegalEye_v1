@@ -188,18 +188,26 @@ export function AskMatterDrawer({
                 <>
                   <div className="flex items-center gap-1.5 mb-1 ml-0.5">
                     <span className="material-symbols-outlined text-[15px] text-[#2D5A27]" aria-hidden="true">visibility</span>
-                    <span className="text-[11px] text-[#0A192F] uppercase font-bold tracking-wide">G&amp;S AI</span>
+                    <span className="text-[11px] text-[#0A192F] uppercase font-bold tracking-wide">LegalEye AI</span>
                   </div>
                   <div className="bg-white text-[#1A1A1A] text-[13px] leading-relaxed px-3.5 py-3 rounded-lg rounded-tl-xs max-w-[92%] shadow-xs border border-gray-200 space-y-2">
                     {msg.supportBadge && (
                       <div
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider mb-1 ${msg.supportBadge === 'Partially Supported'
-                            ? 'bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]'
-                            : 'bg-green-50 text-[#2D5A27] border border-green-200'
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider mb-1 ${
+                          msg.supportBadge === 'High Confidence'
+                            ? 'bg-green-50 text-[#2D5A27] border border-green-200'
+                            : msg.supportBadge === 'Conflict Detected'
+                            ? 'bg-red-50 text-red-700 border border-red-200'
+                            : msg.supportBadge === 'Insufficient Evidence'
+                            ? 'bg-gray-100 text-gray-600 border border-gray-300'
+                            : 'bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]'
                           }`}
                       >
                         <span className="material-symbols-outlined text-[13px]" aria-hidden="true">
-                          {msg.supportBadge === 'Partially Supported' ? 'warning' : 'verified'}
+                          {msg.supportBadge === 'High Confidence' ? 'verified' 
+                            : msg.supportBadge === 'Conflict Detected' ? 'rule'
+                            : msg.supportBadge === 'Insufficient Evidence' ? 'help_outline'
+                            : 'warning'}
                         </span>
                         {msg.supportBadge}
                       </div>
@@ -218,7 +226,7 @@ export function AskMatterDrawer({
           <div className="flex flex-col items-start w-full">
             <div className="flex items-center gap-1.5 mb-1 ml-0.5">
               <span className="material-symbols-outlined text-[15px] text-[#2D5A27] animate-pulse" aria-hidden="true">visibility</span>
-              <span className="text-[11px] text-[#0A192F] uppercase font-bold tracking-wide">G&amp;S AI</span>
+              <span className="text-[11px] text-[#0A192F] uppercase font-bold tracking-wide">LegalEye AI</span>
             </div>
             <div className="bg-white flex items-center justify-center gap-1.5 px-4 py-3 rounded-lg rounded-tl-xs shadow-xs border border-gray-200 min-w-[75px]">
               <div className="w-2 h-2 bg-[#0A192F] rounded-full animate-bounce-subtle"></div>
@@ -267,7 +275,7 @@ export function AskMatterDrawer({
             <span className="material-symbols-outlined text-[13px]" aria-hidden="true">history</span>
             Clear Chat
           </button>
-          <p className="text-[10px] text-gray-400">Powered by Legal-LLM Core</p>
+          <p className="text-[10px] text-gray-400">Powered by LegalEye RAG Engine</p>
         </div>
       </div>
     </div>
