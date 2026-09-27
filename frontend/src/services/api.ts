@@ -98,7 +98,9 @@ export const ingestApi = {
         const formData = new FormData();
         formData.append('matter_id', String(matterId));
         formData.append('file', file);
-        return api.post('documents/ingest/', formData);
+        return api.post('documents/ingest/', formData, {
+            headers: { 'Content-Type': undefined },
+        });
     },
 };
 
