@@ -10,7 +10,75 @@ export const initialWorkspaces: Workspace[] = [
   }
 ];
 
-export const initialMatters: Matter[] = [];
+export const initialMatters: Matter[] = [
+  {
+    id: '1',
+    code: 'LE-2024-001',
+    title: 'Sharma Industries v. Global Tech Solutions — IP Infringement',
+    client: 'Sharma Industries Pvt Ltd',
+    caseDescription: 'Dispute involving alleged infringement of proprietary industrial design patents held by Sharma Industries Pvt Ltd. The Defendant, Global Tech Solutions, is accused of manufacturing and distributing products that replicate patented schematics without licensing under Patents Act, 1970.',
+    jurisdiction: 'Delhi High Court, New Delhi',
+    nextHearing: 'Oct 15, 2024',
+    status: 'Active',
+    isPinned: true,
+    isArchived: false,
+    isCollaborative: true,
+    internalNotes: 'Client has expressed urgency regarding interim injunction. Senior Partner to review draft Written Statement before filing.',
+    missingInfoNote: 'Awaiting certified copies of patent registration certificates (Patent Nos. 2019/DEL/001234 and 2020/DEL/005678). Also pending: Defendant audited financial statements for FY 2022-23.',
+    keyIssues: [
+      { id: '1', title: 'Validity of Patent Registration under Section 3(d)', status: 'check', docRef: 'Doc 1, p.3' },
+      { id: '2', title: 'Prior art defence — public domain disclosure before priority date', status: 'warning', docRef: 'Doc 2, p.7' },
+      { id: '3', title: 'Calculation of damages under Section 108 of Patents Act', status: 'pending', docRef: 'Doc 3, p.15' },
+    ],
+    timeline: [
+      { id: '1', date: 'Jan 15, 2024', title: 'Suit Filed — CS(COMM) 412/2024', description: 'Original suit filed before Delhi High Court (Commercial Division) seeking permanent injunction and damages.', statusColor: '#2D5A27' },
+      { id: '2', date: 'Feb 22, 2024', title: 'Summons Issued to Defendant', description: 'Court issued summons to Global Tech Solutions through registered post and email service.', statusColor: '#115fd4' },
+      { id: '3', date: 'Apr 10, 2024', title: 'Written Statement Filed by Defendant', description: 'Defendant filed Written Statement denying all allegations and raising prior art defence under Section 64.', statusColor: '#B45309' },
+      { id: '4', date: 'Jun 5, 2024', title: 'Application for Interim Injunction (Order 39 Rules 1 & 2)', description: 'Plaintiff filed application seeking ad-interim injunction restraining Defendant from manufacturing impugned products.', statusColor: '#0A192F' },
+      { id: '5', date: 'Oct 15, 2024', title: 'Next Hearing — Arguments on Injunction Application', description: 'Listed for arguments on the interim injunction application. Both parties to file written submissions 3 days prior.', statusColor: '#DC2626' },
+    ],
+    documentsCount: 4,
+    indexedCount: 4,
+    documents: [],
+    summaryText: [
+      'Comprehensive intellectual property litigation ongoing before Delhi High Court Commercial Division.',
+      'Primary relief sought is permanent injunction under Section 108 of the Patents Act, 1970.',
+      'Interim injunction application under Order 39 Rules 1 & 2 is scheduled for hearing on Oct 15, 2024.'
+    ],
+    members: [],
+    opposingCounsels: []
+  },
+  {
+    id: '2',
+    code: 'LE-2024-002',
+    title: 'Adani Logistics v. Union of India — Arbitration & Section 34 Challenge',
+    client: 'Adani Logistics Ltd',
+    caseDescription: 'Arbitration dispute arising out of concession agreement for dry port terminal operations. Challenge to Arbitral Award filed under Section 34 of the Arbitration and Conciliation Act, 1996.',
+    jurisdiction: 'Bombay High Court, Mumbai',
+    nextHearing: 'Nov 02, 2024',
+    status: 'In Review',
+    isPinned: false,
+    isArchived: false,
+    isCollaborative: false,
+    internalNotes: 'Prepare compilation of precedents on patent illegality and scope of intervention under Section 34(2A).',
+    missingInfoNote: 'Need signed copy of the arbitral tribunal dissenting opinion.',
+    keyIssues: [
+      { id: '1', title: 'Grounds of patent illegality under Section 34(2A)', status: 'check', docRef: 'Doc 1, p.10' },
+      { id: '2', title: 'Limitation period compliance under Section 34(3)', status: 'check', docRef: 'Doc 1, p.2' },
+    ],
+    timeline: [
+      { id: '1', date: 'Aug 14, 2023', title: 'Arbitral Award Rendered', description: 'Sole arbitrator passed majority award directing payment of escalated operational costs.', statusColor: '#2D5A27' },
+      { id: '2', date: 'Nov 10, 2023', title: 'Section 34 Petition Filed', description: 'Commercial Arbitration Petition filed before the Bombay High Court.', statusColor: '#115fd4' },
+      { id: '3', date: 'Nov 02, 2024', title: 'Next Hearing — Final Disposal', description: 'Scheduled for final disposal before the Commercial Division bench.', statusColor: '#DC2626' }
+    ],
+    documentsCount: 6,
+    indexedCount: 6,
+    documents: [],
+    summaryText: ['Commercial arbitration challenge under Section 34 of Arbitration Act 1996.'],
+    members: [],
+    opposingCounsels: []
+  }
+];
 export const initialContradictions: ContradictionFinding[] = [];
 export const initialMissingGaps: MissingGapFinding[] = [];
 export const initialPipelineDocs: PipelineDoc[] = [];

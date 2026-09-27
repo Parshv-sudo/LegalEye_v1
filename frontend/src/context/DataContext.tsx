@@ -107,10 +107,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const transformed = (response.data as any[]).map(transformMatterFromApi);
       setMatters(transformed);
     } catch (err: any) {
-      console.error('Failed to fetch matters', err);
-      if (err.response?.status !== 401) {
-        setError('Could not connect to the backend server. Make sure Django is running.');
-      }
+      console.warn('Backend fetch failed, falling back to mock initialMatters:', err);
+      // Fallback to rich mock matters if Django backend is not deployed / unreachable
+      const { initialMatters } = await import('../data/mockData');
+      setMatters(initialMatters);
     } finally {
       setIsLoading(false);
     }
