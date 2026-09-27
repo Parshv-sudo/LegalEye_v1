@@ -23,11 +23,17 @@ export const api = axios.create({
 });
 
 // Interceptor to attach the token to every request
+// and auto-handle FormData Content-Type
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('access_token');
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
+        }
+        // When sending FormData, delete Content-Type so browser sets
+        // multipart/form-data with the correct boundary automatically
+        if (config.data instanceof FormData) {
+            delete config.headers['Content-Type'];
         }
         return config;
     },
