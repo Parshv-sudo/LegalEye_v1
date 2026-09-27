@@ -18,6 +18,8 @@ from PyPDF2 import PdfReader
 
 logger = logging.getLogger(__name__)
 
+GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash')
+
 # ─── Persistent Chunk Storage (JSON-based, per matter) ───────────────────────
 
 CHUNKS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'chunks_data')
@@ -238,7 +240,7 @@ DOCUMENT EXCERPTS:
     try:
         import google.generativeai as genai
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        model = genai.GenerativeModel(GEMINI_MODEL)
         
         response = model.generate_content([
             {"role": "user", "parts": [system_prompt]},
@@ -329,7 +331,7 @@ CONTEXT:
     try:
         import google.generativeai as genai
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        model = genai.GenerativeModel(GEMINI_MODEL)
         response = model.generate_content([{"role": "user", "parts": [prompt]}])
         return response.text
     except Exception as e:
@@ -366,7 +368,7 @@ CONTEXT:
         import json
         import time
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        model = genai.GenerativeModel(GEMINI_MODEL)
         response = model.generate_content([{"role": "user", "parts": [prompt]}])
         
         text = response.text.strip()
