@@ -170,6 +170,9 @@ def ingest_document_view(request):
     file_name = uploaded_file.name
     file_size_kb = len(file_bytes) / 1024
 
+    # Seek back to start so Django can save the file
+    uploaded_file.seek(0)
+
     # Create the Document record
     doc = Document.objects.create(
         matter=matter,

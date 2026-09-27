@@ -124,9 +124,8 @@ function AppContent() {
       client: newMatterData.client || 'Client Representation',
       case_description: 'Newly initialized litigation matter corpus with scheduled hearing.',
       jurisdiction: newMatterData.jurisdiction || 'Delhi High Court',
-      next_hearing: newMatterData.nextHearing || `Nov 20, ${currentYear}`,
       status: 'Active',
-      internal_notes: '',
+      internal_notes: newMatterData.internalNotes || '',
       missing_info_note: 'Initial indexing complete. Verify subsequent rejoinder submissions.',
     };
 

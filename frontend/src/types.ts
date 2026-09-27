@@ -56,6 +56,8 @@ export interface Matter {
   caseDescription: string;
   jurisdiction: string;
   nextHearing: string;
+  createdAt?: string;
+  updatedAt?: string;
   status: MatterStatus;
   isPinned?: boolean;
   isArchived?: boolean;

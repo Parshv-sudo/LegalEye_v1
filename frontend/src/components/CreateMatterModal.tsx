@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { OpposingCounsel, Matter } from '../types';
 import { courtsStructure } from '../data/courtsStructure';
 
@@ -10,7 +10,6 @@ interface CreateMatterModalProps {
 
 export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMatterModalProps) {
   const [currentStep, setCurrentStep] = useState(1); // Start on Step 1: Client Info
-  const createFileInputRef = useRef<HTMLInputElement>(null);
 
   // Form State with clean defaults
   const [clientName, setClientName] = useState('');
@@ -26,7 +25,7 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
     { id: '1', name: '', firm: '', email: '' }
   ]);
   const [internalNotes, setInternalNotes] = useState('');
-  const [files, setFiles] = useState<string[]>([]);
+
 
   if (!isOpen) return null;
 
@@ -48,7 +47,7 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
   };
 
   const handleContinue = () => {
-    if (currentStep < 4) {
+    if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     } else {
       let finalJurisdiction = courtName;
@@ -63,7 +62,6 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
         client: clientName || 'Client Corp',
         jurisdiction: finalJurisdiction,
         status: 'Active',
-        nextHearing: `Nov 18, ${new Date().getFullYear()}`,
         opposingCounsels: counsels.filter((c) => c.name.trim()),
         internalNotes: internalNotes
       };
@@ -118,7 +116,7 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
               <ol className="overflow-hidden space-y-6" role="list">
                 {/* Step 1 */}
                 <li className="relative">
-                  <div className={`absolute top-4 left-3 -ml-px h-full w-0.5 ${currentStep > 1 ? 'bg-[#2D5A27]' : 'bg-gray-300'}`}></div>
+                  <div className={`absolute top-4 left-3 -ml-px h-full w-0.5 ${currentStep > 1 ? 'bg-[#2D5A27]' : 'bg-gray-300'}`} aria-hidden="true"></div>
                   <button
                     onClick={() => setCurrentStep(1)}
                     className="relative flex items-start text-left group w-full cursor-pointer"
@@ -147,7 +145,7 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
 
                 {/* Step 2 */}
                 <li className="relative">
-                  <div className={`absolute top-4 left-3 -ml-px h-full w-0.5 ${currentStep > 2 ? 'bg-[#2D5A27]' : 'bg-gray-300'}`}></div>
+                  <div className={`absolute top-4 left-3 -ml-px h-full w-0.5 ${currentStep > 2 ? 'bg-[#2D5A27]' : 'bg-gray-300'}`} aria-hidden="true"></div>
                   <button
                     onClick={() => setCurrentStep(2)}
                     className="relative flex items-start text-left group w-full cursor-pointer"
@@ -176,7 +174,6 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
 
                 {/* Step 3 */}
                 <li className="relative">
-                  <div className={`absolute top-4 left-3 -ml-px h-full w-0.5 ${currentStep > 3 ? 'bg-[#2D5A27]' : 'bg-gray-300'}`}></div>
                   <button
                     onClick={() => setCurrentStep(3)}
                     className="relative flex items-start text-left group w-full cursor-pointer"
@@ -193,38 +190,10 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
                       )}
                     </span>
                     <span className="ml-3 min-w-0 flex flex-col">
-                      <span className={`text-[11px] font-semibold tracking-wide uppercase ${currentStep >= 3 ? 'text-[#2D5A27]' : 'text-gray-400'}`}>
+                      <span className={`text-[11px] font-semibold tracking-wide uppercase ${currentStep === 3 ? 'text-[#2D5A27]' : 'text-gray-400'}`}>
                         Step 3
                       </span>
                       <span className={`text-sm font-medium ${currentStep === 3 ? 'text-[#1A1A1A] font-semibold' : 'text-gray-500'}`}>
-                        Documents
-                      </span>
-                    </span>
-                  </button>
-                </li>
-
-                {/* Step 4 */}
-                <li className="relative">
-                  <button
-                    onClick={() => setCurrentStep(4)}
-                    className="relative flex items-start text-left group w-full cursor-pointer"
-                  >
-                    <span className="h-8 flex items-center">
-                      {currentStep > 4 ? (
-                        <span className="relative z-10 w-6 h-6 flex items-center justify-center bg-[#2D5A27] rounded-full text-white">
-                          <span className="material-symbols-outlined text-[14px]">check</span>
-                        </span>
-                      ) : (
-                        <span className={`relative z-10 w-6 h-6 flex items-center justify-center rounded-full border-2 ${currentStep === 4 ? 'border-[#2D5A27] bg-white' : 'border-gray-300 bg-white'}`}>
-                          {currentStep === 4 && <span className="w-2 h-2 bg-[#2D5A27] rounded-full"></span>}
-                        </span>
-                      )}
-                    </span>
-                    <span className="ml-3 min-w-0 flex flex-col">
-                      <span className={`text-[11px] font-semibold tracking-wide uppercase ${currentStep === 4 ? 'text-[#2D5A27]' : 'text-gray-400'}`}>
-                        Step 4
-                      </span>
-                      <span className={`text-sm font-medium ${currentStep === 4 ? 'text-[#1A1A1A] font-semibold' : 'text-gray-500'}`}>
                         Review
                       </span>
                     </span>
@@ -238,7 +207,7 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
           <div className="sm:hidden w-full bg-[#F0F2F5] border-b border-gray-200 h-1.5 flex shrink-0">
             <div
               className="bg-[#2D5A27] h-full transition-all"
-              style={{ width: `${(currentStep / 4) * 100}%` }}
+              style={{ width: `${(currentStep / 3) * 100}%` }}
             ></div>
           </div>
 
@@ -512,67 +481,8 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
               </div>
             )}
 
-            {/* STEP 3: DOCUMENTS */}
+            {/* STEP 3: REVIEW */}
             {currentStep === 3 && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-lg font-heading font-semibold text-[#0A192F] mb-1">
-                    Upload Matter Documents
-                  </h2>
-                  <p className="text-xs text-gray-500">
-                    Ingest pleadings, affidavits, and correspondence for OCR &amp; indexing.
-                  </p>
-                </div>
-
-                <div 
-                  className="border-2 border-dashed border-gray-300 rounded p-6 text-center hover:border-[#0A192F] transition-colors bg-gray-50 cursor-pointer"
-                  onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-[#0A192F]', 'bg-blue-50'); }}
-                  onDragLeave={(e) => { e.preventDefault(); e.currentTarget.classList.remove('border-[#0A192F]', 'bg-blue-50'); }}
-                  onDrop={(e) => { e.preventDefault(); e.currentTarget.classList.remove('border-[#0A192F]', 'bg-blue-50'); const droppedFiles = Array.from(e.dataTransfer.files as FileList).map((f: File) => f.name); setFiles([...files, ...droppedFiles]); }}
-                  onClick={() => createFileInputRef.current?.click()}
-                >
-                  <span className="material-symbols-outlined text-3xl text-gray-400 mb-2">cloud_upload</span>
-                  <p className="text-sm font-semibold text-[#1A1A1A]">Drag &amp; drop PDF files</p>
-                  <p className="text-xs text-gray-500 mt-1">PDF, DOCX, TXT up to 50MB</p>
-                  <input
-                    ref={createFileInputRef}
-                    type="file"
-                    multiple
-                    accept=".pdf,.docx,.txt"
-                    className="hidden"
-                    onChange={(e) => { if (e.target.files) { const newFiles = Array.from(e.target.files as FileList).map((f: File) => f.name); setFiles([...files, ...newFiles]); e.target.value = ''; } }}
-                  />
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); createFileInputRef.current?.click(); }}
-                    className="mt-3 px-3 py-1.5 bg-white border border-gray-300 rounded text-xs font-semibold hover:bg-gray-100"
-                  >
-                    + Browse Files
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Queued for Ingestion ({files.length})</p>
-                  {files.map((file, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-red-600 text-base">picture_as_pdf</span>
-                        <span className="font-medium text-gray-800">{file}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-[#2D5A27] font-semibold bg-green-50 px-2 py-0.5 rounded">Ready</span>
-                        <button type="button" onClick={() => setFiles(files.filter((_, i) => i !== idx))} className="text-gray-400 hover:text-red-500 transition-colors" title="Remove file">
-                          <span className="material-symbols-outlined text-[16px]">close</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* STEP 4: REVIEW */}
-            {currentStep === 4 && (
               <div className="space-y-6">
                 <div>
                   <h2 className="text-lg font-heading font-semibold text-[#0A192F] mb-1">
@@ -603,8 +513,8 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500 font-medium">Documents Queued</span>
-                    <span className="font-semibold text-[#2D5A27]">{files.length} documents</span>
+                    <span className="text-gray-500 font-medium">Created</span>
+                    <span className="font-semibold text-gray-900">{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   </div>
                 </div>
               </div>
@@ -626,7 +536,7 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
             onClick={handleContinue}
             className="w-full sm:w-auto px-6 py-2.5 sm:py-2 text-sm font-semibold text-white bg-[#2D5A27] border border-transparent rounded hover:bg-[#2D5A27]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2D5A27] transition-colors min-h-[44px] shadow-sm flex items-center justify-center gap-2"
           >
-            {currentStep === 4 ? 'Create Matter' : 'Continue'}
+            {currentStep === 3 ? 'Create Matter' : 'Continue'}
             <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
           </button>
         </footer>

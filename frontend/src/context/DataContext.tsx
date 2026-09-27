@@ -27,6 +27,8 @@ function transformMatterFromApi(raw: any): Matter {
     caseDescription: raw.caseDescription ?? raw.case_description ?? '',
     jurisdiction: raw.jurisdiction || '',
     nextHearing: raw.nextHearing ?? raw.next_hearing ?? '',
+    createdAt: raw.createdAt ?? raw.created_at ?? '',
+    updatedAt: raw.updatedAt ?? raw.updated_at ?? '',
     status: raw.status || 'Active',
     isPinned: raw.isPinned ?? raw.is_pinned ?? false,
     isArchived: raw.isArchived ?? raw.is_archived ?? false,

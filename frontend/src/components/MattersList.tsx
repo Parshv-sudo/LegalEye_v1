@@ -160,7 +160,7 @@ export function MattersList({
                   <th className="py-3.5 px-4">Matter Code &amp; Title</th>
                   <th className="py-3.5 px-4">Client</th>
                   <th className="py-3.5 px-4">Jurisdiction</th>
-                  <th className="py-3.5 px-4">Next Hearing</th>
+                  <th className="py-3.5 px-4">Date Created</th>
                   <th className="py-3.5 px-4">Status</th>
                   <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
@@ -248,7 +248,7 @@ export function MattersList({
                     </td>
 
                     <td className="py-4 px-4 font-mono text-gray-700">
-                      {matter.nextHearing}
+                      {matter.createdAt ? new Date(matter.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </td>
 
                     <td className="py-4 px-4">
