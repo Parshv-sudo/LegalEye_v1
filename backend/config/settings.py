@@ -87,13 +87,27 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
+# Uses Turso (libSQL) in production when TURSO_DB_URL is set,
+# falls back to local SQLite for development.
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+TURSO_DB_URL = os.environ.get('TURSO_DB_URL')
+TURSO_AUTH_TOKEN = os.environ.get('TURSO_AUTH_TOKEN', '')
+
+if TURSO_DB_URL:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django_libsql',
+            'NAME': TURSO_DB_URL,
+            'AUTH_TOKEN': TURSO_AUTH_TOKEN,
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation

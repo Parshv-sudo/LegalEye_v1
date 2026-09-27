@@ -20,6 +20,7 @@ colorama==0.4.6
 cryptography==50.0.1
 Django==6.1
 django-cors-headers==4.9.0
+django-libsql-backend
 django-storages==1.14.6
 djangorestframework==3.18.0
 djangorestframework_simplejwt==5.5.1
