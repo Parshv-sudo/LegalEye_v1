@@ -1,7 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { PipelineDoc, Matter } from '../types';
-import { initialPipelineDocs } from '../data/mockData';
-import { OcrReviewModal } from './OcrReviewModal';
 import { parseAndStoreDocument } from '../services/documentStore';
 import { ingestApi } from '../services/api';
 
@@ -15,7 +13,6 @@ interface DocumentPipelineProps {
 }
 
 export function DocumentPipeline({ onBack, matter, onOpenMobileSidebar, pipelineDocs, setPipelineDocs }: DocumentPipelineProps) {
-  const [reviewingDoc, setReviewingDoc] = useState<PipelineDoc | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,30 +37,7 @@ export function DocumentPipeline({ onBack, matter, onOpenMobileSidebar, pipeline
     (d) => d.ocr === 'error' || d.classifying === 'error' || d.indexed === 'error'
   ).length;
 
-  const handleResolveOcr = (_transcription: string) => {
-    if (!reviewingDoc) return;
-    const targetDocId = reviewingDoc.id;
-    const targetFileName = reviewingDoc.fileName;
 
-    setPipelineDocs((prev) =>
-      prev.map((doc) => {
-        if (doc.id === targetDocId) {
-          return {
-            ...doc,
-            ocr: 'completed',
-            classifying: 'completed',
-            indexed: 'completed',
-            errorMessage: undefined,
-            errorSubtitle: undefined,
-            progressLabel: 'Indexed with Verified Transcription'
-          };
-        }
-        return doc;
-      })
-    );
-    setReviewingDoc(null);
-    showToast(`OCR error resolved for ${targetFileName}. Ingested into search index.`);
-  };
 
   const handleUploadNewFile = (fileName: string) => {
     const newDoc: PipelineDoc = {
@@ -357,12 +331,9 @@ export function DocumentPipeline({ onBack, matter, onOpenMobileSidebar, pipeline
 
                     <td className="py-3.5 px-4 text-right">
                       {doc.errorMessage ? (
-                        <button
-                          onClick={() => setReviewingDoc(doc)}
-                          className="px-2.5 py-1 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded font-semibold text-[11px] transition-colors cursor-pointer"
-                        >
-                          Review Error
-                        </button>
+                        <span className="px-2.5 py-1 bg-red-50 text-red-700 border border-red-200 rounded font-semibold text-[11px]">
+                          {doc.errorMessage}
+                        </span>
                       ) : (
                         <span className="text-gray-400 text-[11px]">{doc.progressLabel || 'Ready'}</span>
                       )}
@@ -375,53 +346,41 @@ export function DocumentPipeline({ onBack, matter, onOpenMobileSidebar, pipeline
           </div>
         </div>
 
-        {/* Highlighted Error Card */}
-        {pipelineDocs.some((d) => d.ocr === 'error') && (
-          <div className="bg-red-50/80 border border-red-200 rounded-lg p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]" aria-hidden="true">error</span>
+        {/* Highlighted Error Card — dynamic, shows actual errored doc */}
+        {pipelineDocs.some((d) => d.ocr === 'error') && (() => {
+          const errorDoc = pipelineDocs.find((d) => d.ocr === 'error');
+          if (!errorDoc) return null;
+          return (
+            <div className="bg-red-50/80 border border-red-200 rounded-lg p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">error</span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-red-900">
+                    Extraction Error: {errorDoc.fileName}
+                  </h4>
+                  <p className="text-xs text-red-700 mt-0.5 max-w-2xl leading-relaxed">
+                    {errorDoc.errorSubtitle || 'The backend could not process this file. Please verify the file is a valid PDF and try again.'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-sm font-bold text-red-900">
-                  Parse Error: Illegible scan on pages (Handwritten_Notes_Scan.pdf)
-                </h4>
-                <p className="text-xs text-red-700 mt-0.5 max-w-2xl leading-relaxed">
-                  The OCR engine failed to extract meaningful text from these pages, likely due to low resolution or heavy handwritten cursive content.
-                </p>
-              </div>
-            </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={() => setReviewingDoc(pipelineDocs.find((d) => d.ocr === 'error') || null)}
-                className="px-3 py-1.5 bg-white border border-red-300 text-red-800 text-xs font-semibold rounded hover:bg-red-50 transition-colors cursor-pointer"
-              >
-                Review Pages
-              </button>
-              <button
-                onClick={() => {
-                  const errorDoc = pipelineDocs.find((d) => d.ocr === 'error');
-                  if (errorDoc) {
-                    setReviewingDoc(errorDoc);
-                    handleResolveOcr('');
-                  }
-                }}
-                className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded hover:bg-red-700 transition-colors cursor-pointer"
-              >
-                Manual Override
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => {
+                    setPipelineDocs((prev) => prev.filter((d) => d.id !== errorDoc.id));
+                    showToast(`Dismissed error for "${errorDoc.fileName}".`);
+                  }}
+                  className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded hover:bg-red-700 transition-colors cursor-pointer"
+                >
+                  Dismiss
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </main>
-
-      {/* OCR Review Modal */}
-      <OcrReviewModal
-        isOpen={Boolean(reviewingDoc)}
-        onClose={() => setReviewingDoc(null)}
-        onResolve={handleResolveOcr}
-      />
     </div>
   );
 }
