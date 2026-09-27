@@ -81,6 +81,7 @@ Pygments==2.21.0
 PyJWT==2.13.0
 pyparsing==3.3.2
 PyPDF2==3.0.1
+pymupdf
 PyPika==0.51.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.3

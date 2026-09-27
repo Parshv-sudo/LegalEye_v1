@@ -195,11 +195,17 @@ def ingest_document_view(request):
             file_bytes=file_bytes,
         )
 
-        # Count pages from PyPDF2
-        from PyPDF2 import PdfReader
-        from io import BytesIO
-        reader = PdfReader(BytesIO(file_bytes))
-        page_count = len(reader.pages)
+        # Count pages
+        try:
+            import fitz
+            pdf_doc = fitz.open(stream=file_bytes, filetype="pdf")
+            page_count = len(pdf_doc)
+            pdf_doc.close()
+        except ImportError:
+            from PyPDF2 import PdfReader
+            from io import BytesIO
+            reader = PdfReader(BytesIO(file_bytes))
+            page_count = len(reader.pages)
 
         # Update document status
         doc.pages = page_count

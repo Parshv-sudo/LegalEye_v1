@@ -2,7 +2,7 @@
 LegalEye — RAG (Retrieval-Augmented Generation) Engine
 
 This module handles:
-1. PDF text extraction and page-level chunking (PyPDF2)
+1. PDF text extraction with multi-tier OCR (PyMuPDF + Gemini Vision fallback)
 2. TF-IDF based vector retrieval (scikit-learn — zero external services)
 3. Grounded AI responses using Gemini API free tier
 """
@@ -11,10 +11,9 @@ import os
 import re
 import json
 import logging
+import base64
 from typing import Optional
 from io import BytesIO
-
-from PyPDF2 import PdfReader
 
 logger = logging.getLogger(__name__)
 
@@ -50,13 +49,123 @@ def delete_matter_chunks(matter_id: int):
         os.remove(path)
 
 
-# ─── PDF Text Extraction ─────────────────────────────────────────────────────
+# ─── PDF Text Extraction (Multi-Tier OCR Pipeline) ───────────────────────────
+
+# Minimum character threshold — pages with fewer chars are considered "empty"
+# and will be sent to Gemini Vision for OCR
+MIN_TEXT_THRESHOLD = 30
+
+
+def _ocr_page_with_gemini(page_image_bytes: bytes, page_num: int) -> str:
+    """
+    Use Gemini Vision to OCR a page rendered as a PNG image.
+    Returns the extracted text, or empty string on failure.
+    """
+    api_key = os.environ.get('GEMINI_API_KEY') or os.environ.get('VITE_GEMINI_API_KEY')
+    if not api_key:
+        logger.warning(f"No GEMINI_API_KEY set — cannot OCR page {page_num} with Vision")
+        return ""
+
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel(GEMINI_MODEL)
+
+        image_b64 = base64.b64encode(page_image_bytes).decode('utf-8')
+
+        response = model.generate_content([
+            {
+                "role": "user",
+                "parts": [
+                    {
+                        "inline_data": {
+                            "mime_type": "image/png",
+                            "data": image_b64,
+                        }
+                    },
+                    {
+                        "text": (
+                            "You are an OCR engine. Extract ALL text from this legal document page image. "
+                            "Preserve the original structure: headings, paragraphs, numbered lists, "
+                            "tables, footnotes. Output ONLY the extracted text, nothing else. "
+                            "If the page is blank or contains no readable text, respond with exactly: [BLANK PAGE]"
+                        ),
+                    },
+                ],
+            }
+        ])
+
+        text = response.text.strip()
+        if text == "[BLANK PAGE]":
+            return ""
+        return text
+    except Exception as e:
+        logger.error(f"Gemini Vision OCR failed for page {page_num}: {e}")
+        return ""
+
 
 def extract_text_from_pdf(file_bytes: bytes) -> list[dict]:
     """
-    Extract text from a PDF file, returning a list of page-level chunks.
-    Each chunk is { 'page': int, 'text': str }.
+    Extract text from a PDF file using a multi-tier approach:
+    1. PyMuPDF (fitz) for digital text extraction (fast, accurate)
+    2. Gemini Vision API for scanned/image pages where no text is found (OCR fallback)
+
+    Returns a list of page-level chunks: [{ 'page': int, 'text': str, 'ocr_method': str }]
     """
+    try:
+        import fitz  # PyMuPDF
+    except ImportError:
+        logger.warning("PyMuPDF not installed, falling back to PyPDF2")
+        return _extract_text_pypdf2_fallback(file_bytes)
+
+    pdf_doc = fitz.open(stream=file_bytes, filetype="pdf")
+    pages = []
+    vision_candidates = []  # Pages that need Gemini Vision OCR
+
+    for i in range(len(pdf_doc)):
+        page = pdf_doc[i]
+        text = page.get_text("text").strip()
+
+        if len(text) >= MIN_TEXT_THRESHOLD:
+            # Good text extraction — digital PDF page
+            pages.append({
+                'page': i + 1,
+                'text': text,
+                'ocr_method': 'pymupdf',
+            })
+        else:
+            # No text or too little — likely a scanned/image page
+            vision_candidates.append(i)
+
+    # Process scanned pages through Gemini Vision
+    if vision_candidates:
+        logger.info(f"Found {len(vision_candidates)} scanned page(s), attempting Gemini Vision OCR...")
+        for page_idx in vision_candidates:
+            page = pdf_doc[page_idx]
+            # Render page as a high-res PNG image
+            pix = page.get_pixmap(dpi=200)
+            image_bytes = pix.tobytes("png")
+
+            text = _ocr_page_with_gemini(image_bytes, page_idx + 1)
+            if text:
+                pages.append({
+                    'page': page_idx + 1,
+                    'text': text,
+                    'ocr_method': 'gemini_vision',
+                })
+            else:
+                logger.warning(f"Page {page_idx + 1}: No text extracted (blank or unreadable)")
+
+    pdf_doc.close()
+
+    # Sort pages by page number
+    pages.sort(key=lambda p: p['page'])
+    return pages
+
+
+def _extract_text_pypdf2_fallback(file_bytes: bytes) -> list[dict]:
+    """Fallback to PyPDF2 if PyMuPDF is not available."""
+    from PyPDF2 import PdfReader
     reader = PdfReader(BytesIO(file_bytes))
     pages = []
     for i, page in enumerate(reader.pages):
@@ -66,6 +175,7 @@ def extract_text_from_pdf(file_bytes: bytes) -> list[dict]:
             pages.append({
                 'page': i + 1,
                 'text': text,
+                'ocr_method': 'pypdf2',
             })
     return pages
 
