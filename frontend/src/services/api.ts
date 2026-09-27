@@ -2,9 +2,14 @@ import axios from 'axios';
 
 const resolveApiUrl = () => {
     let url = (import.meta.env.API_URL as string) || (import.meta.env.VITE_API_URL as string) || 'http://localhost:8000/api/';
-    if (!url.endsWith('/')) {
+    
+    // Auto-append /api/ if missing
+    if (!url.endsWith('/api/') && !url.endsWith('/api')) {
+        url = url.endsWith('/') ? `${url}api/` : `${url}/api/`;
+    } else if (!url.endsWith('/')) {
         url += '/';
     }
+    
     return url;
 };
 
