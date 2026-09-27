@@ -63,7 +63,7 @@ export function CreateMatterModal({ isOpen, onClose, onCreateMatter }: CreateMat
         client: clientName || 'Client Corp',
         jurisdiction: finalJurisdiction,
         status: 'Active',
-        nextHearing: 'Nov 18, 2023',
+        nextHearing: `Nov 18, ${new Date().getFullYear()}`,
         opposingCounsels: counsels.filter((c) => c.name.trim()),
         internalNotes: internalNotes
       };
